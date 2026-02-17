@@ -1,0 +1,5 @@
+I plan on using jsonc to store the human readable map format. The idea is based on the map format from the original Quake. In the future, I may need to also create a denser, easier to parse format for reading speed during gameplay but just using the jsonc format is okay if it is not too slow and may improve the speed of prototyping.
+The format is also very flexible to include various `classname`s for future extensibility.
+I have converted the heightmap from the art sandbox into the map file structure by hand but in the future I wish to create an editor.
+The extension is currently `.fgmap` though this is subject to change as the project gets a name better than 'fishing game' and if I need to create another format for the compiled maps.
+I have also created a small python script (`/maps/map_testing_renderer.py`) that helped me check if I reproduced the map correctly.
