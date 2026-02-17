@@ -25,28 +25,55 @@ if tt == DEEP_WATER:
 	return 0
 
 elif tt == WATER:
-	if av<=WATER or (quad>=2 and av>=GRASS):
-		if ah<=WATER:
-			if ah == av == DEEP_WATER:
-				return 1
-			return 0
+	if av>=GRASS:
+        if quad<=1:
+            if av >= HILL and ah >= HILL:
+                return 9
+            
+            if ah>=GRASS:
+                if di<=WATER:
+                    return 12
+            
+            elif ah==SAND:
+                if di>=GRASS and ah==SAND:
+                    return 11
+                else:
+                    return 10
+            elif ah<=WATER:
+                if di<=WATER:
+                    return 13
+                return 14
+        
+        if quad>=2:
+            if ah<=WATER:
+                return 0
+            if ah==SAND or (ah>=GRASS and di<=WATER):
+                return 2
 
-		if quad<=1 and ah>SAND and di<=WATER:
-			return 3
-		return 2
-	if av==SAND:
-		if ah==SAND:
-			return 4
-		if ah>SAND:
-			return 5
-		if di<=WATER:
-			return 6
-		return 7
-	if av>=GRASS and di>=GRASS and ah>=GRASS:
-		return 8
-	if quad>=2:
-		return 0
-	# unfinished
+        if di>=SAND and ah>=GRASS:
+            return 8
+        
+    elif av==SAND:
+        if quad>=2:
+            if di>=GRASS and ah<=WATER:
+                return 6
+        if ah<=WATER:
+            if di>=SAND:
+                return 7
+            return 6
+        else:
+            if ah>=GRASS and di>=GRASS:
+                return 5
+            return 4
+    
+    elif av<=WATER:
+        if av == ah == DEEP_WATER:
+            return 1
+        if ah>WATER:
+            if quad<=1 and di<=WATER and ah>=GRASS:
+                return 3
+            return 2
+        return 0
 
 elif tt == SAND:
 	if ah<=SAND and av<=SAND:
@@ -54,10 +81,10 @@ elif tt == SAND:
 	if ah>=GRASS and av>=GRASS:
 		if quad>=2:
 			return 1
-		if ah > GRASS and av > GRASS:
+		if ah>=HILL and av>=HILL:
 			return 2
 		return 1
-	if ah > SAND:
+	if ah>=GRASS:
 		if di < SAND or (av<=SAND and di<=SAND):
 			return 4
 		return 3
@@ -68,12 +95,14 @@ elif tt == SAND:
 
 elif tt == GRASS:
 	if ah == av == WATER:
+		if quad<=1 and di==SAND:
+			return 2
 		return 1
 	if quad >= 2: # bottom half
 		return 0
-	# bottom half - av is north
-	if ah == av and (av == HILL or av == TALL_HILL):
-		return 2
+	# top half - av is north
+	if ah == av and av>=HILL:
+		return 3
 	return 0
 
 elif tt == HILL:
@@ -105,7 +134,7 @@ elif tt == TALL_HILL:
 		return 2
 	if quad <= 1: # top half
 		return 4
-	# bottom half - av is north
+	# bottom half - av is south
 	if s_di == HILL:
 		return 4
 	if ah == HILL:
