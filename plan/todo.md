@@ -1,6 +1,5 @@
 # next
 add more props (you need not add all listed below)
-finish tileset_rules.py (pseudocode)
 
 # future
 ## art and concepting
