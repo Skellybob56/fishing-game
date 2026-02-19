@@ -35,10 +35,9 @@ elif tt == WATER:
                     return 12
             
             elif ah==SAND:
-                if di>=GRASS and ah==SAND:
+                if di>=GRASS:
                     return 11
-                else:
-                    return 10
+                return 10
             elif ah<=WATER:
                 if di<=WATER:
                     return 13
@@ -54,9 +53,8 @@ elif tt == WATER:
             return 8
         
     elif av==SAND:
-        if quad>=2:
-            if di>=GRASS and ah<=WATER:
-                return 6
+        if quad>=2 and di>=GRASS and ah<=WATER::
+            return 6
         if ah<=WATER:
             if di>=SAND:
                 return 7
@@ -88,10 +86,9 @@ elif tt == SAND:
 		if di < SAND or (av<=SAND and di<=SAND):
 			return 4
 		return 3
-	if av > SAND:
-		if di < SAND or (ah<=SAND and di<=SAND):
-			return 6
-		return 5
+	if di < SAND or (ah<=SAND and di<=SAND):
+		return 6
+	return 5
 
 elif tt == GRASS:
 	if ah == av == WATER:
@@ -106,7 +103,6 @@ elif tt == GRASS:
 	return 0
 
 elif tt == HILL:
-	# todo: describe overlay/overhang prop spawing
 	if quad <= 1: # top half
 		return 0
 	# bottom half - av and di are both south
@@ -121,7 +117,6 @@ elif tt == HILL:
 	return 4
 
 elif tt == TALL_HILL:
-	# todo: describe overlay/overhang prop spawing
 	if s_tt == TALL_HILL:
 		return 0
 	if s_di == TALL_HILL:
@@ -129,7 +124,7 @@ elif tt == TALL_HILL:
 	if ah == TALL_HILL:
 		if quad <= 1: # top half
 			return 2
-		if s_di == HILL:
+		if di == HILL:
 			return 3
 		return 2
 	if quad <= 1: # top half

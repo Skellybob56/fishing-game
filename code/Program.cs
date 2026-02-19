@@ -6,9 +6,12 @@ namespace FishingGame;
 
 static class Engine
 {
+    static World world;
+
     static Engine()
     {
         InitWindow(800, 480, "Hello World");
+        world = new World();
     }
 
     static void Update()
@@ -22,6 +25,7 @@ static class Engine
         ClearBackground(Color.White);
 
         DrawText("Hello, world!", 12, 12, 20, Color.Black);
+        world.RenderPage();
 
         EndDrawing();
     }
