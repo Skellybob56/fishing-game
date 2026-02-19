@@ -54,16 +54,19 @@ def RemoveJsoncComments(string):
     
     return out_str
 
-with open("testmap.fgmap", "r") as file:
-    data = file.read()
+def Main():
+    with open("testmap.fgmap", "r") as file:
+        data = file.read()
 
-print(RemoveJsoncComments(data))
-y = json.loads(RemoveJsoncComments(data))
-print(y)
+    print(RemoveJsoncComments(data))
+    y = json.loads(RemoveJsoncComments(data))
+    print(y)
 
-data = data.split('"data" : [')[1].split("]")[0].split("\n")
-data = [[int(i) for i in s.strip().split(",") if i!=""] for s in data]
-print(data)
+    data = data.split('"data" : [')[1].split("]")[0].split("\n")
+    data = [[int(i) for i in s.strip().split(",") if i!=""] for s in data]
+    print(data)
 
-for line in data:
-    print(' '.join([".'~=#@"[i] for i in line]))
+    for line in data:
+        print(' '.join([".'~=#@"[i] for i in line]))
+
+Main()

@@ -3,3 +3,5 @@ The format is also very flexible to include various `classname`s for future exte
 I have converted the heightmap from the art sandbox into the map file structure by hand but in the future I wish to create an editor.
 The extension is currently `.fgmap` though this is subject to change as the project gets a name better than 'fishing game' and if I need to create another format for the compiled maps.
 I have also created a small python script (`/maps/map_testing_renderer.py`) that helped me check if I reproduced the map correctly.
+
+In primary memory, I think I will store the whole world as a class that stores several smaller 'page's which are structs containing the tileset, entities and collision data for one screen of the world.
