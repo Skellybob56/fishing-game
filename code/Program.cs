@@ -1,0 +1,41 @@
+﻿using Raylib_cs;
+using static Raylib_cs.Raylib;
+using System.Numerics;
+
+namespace FishingGame;
+
+static class Engine
+{
+    static Engine()
+    {
+        InitWindow(800, 480, "Hello World");
+    }
+
+    static void Update()
+    {
+        
+    }
+
+    static void Render()
+    {
+        BeginDrawing();
+        ClearBackground(Color.White);
+
+        DrawText("Hello, world!", 12, 12, 20, Color.Black);
+
+        EndDrawing();
+    }
+
+    // STAThread is required if you deploy using NativeAOT on Windows - See https://github.com/raylib-cs/raylib-cs/issues/301
+    [System.STAThread]
+    public static void Main()
+    {
+        while (!WindowShouldClose())
+        {
+            Update();
+            Render();
+        }
+
+        CloseWindow();
+    }
+}
