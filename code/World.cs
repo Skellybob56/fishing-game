@@ -8,6 +8,7 @@ namespace FishingGame;
 public class World
 {
     readonly Page page;
+    readonly Texture2D textureAtlas;
 
     public World()
     {
@@ -34,6 +35,8 @@ public class World
         TileHeight[] heightmap = Array.ConvertAll(byte_heightmap, b => (TileHeight)b);
         // </temp heightmap loading>
 
+        textureAtlas = LoadTexture("textures/atlas.png");
+
         page = new Page(
             new PagePosition(0, 0),
             new PageSize(24, 15),
@@ -46,5 +49,6 @@ public class World
     public void RenderPage()
     {
         // not yet implemented
+        DrawTexture(textureAtlas, 0, 0, Color.White);
     }
 }
