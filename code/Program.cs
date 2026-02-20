@@ -77,6 +77,11 @@ static class Engine
         ClearBackground(Color.Magenta);
 
         world.RenderAcre();
+        world.RenderLowProps();
+
+        // todo: render player
+
+        world.RenderHighProps();
 
         EndTextureMode();
 

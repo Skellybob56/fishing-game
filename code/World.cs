@@ -90,4 +90,14 @@ public class World
             }
         }
     }
+
+    public void RenderLowProps()
+    {
+        throw new NotImplementedException();
+    }
+
+    public void RenderHighProps()
+    {
+        throw new NotImplementedException();
+    }
 }
