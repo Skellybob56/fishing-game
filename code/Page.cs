@@ -44,7 +44,7 @@ readonly struct Page
 
     static byte DeepWaterTileIndex(TileHeight verticalAdjacent, TileHeight diagonal, TileHeight horizontalAdjacent)
     {
-        return (byte)(verticalAdjacent == diagonal && diagonal == horizontalAdjacent ? 1 : 0);
+        return (byte)(verticalAdjacent == diagonal && diagonal == horizontalAdjacent && horizontalAdjacent == TileHeight.Water ? 1 : 0);
     }
     static byte WaterTileIndex(TileHeight vertical, TileHeight diagonal, TileHeight horizontal, bool top)
     {
@@ -126,13 +126,13 @@ readonly struct Page
         }
         if (horizontalAdjacent >= TileHeight.Grass)
         {
-            if (diagonal < TileHeight.Sand || (horizontalAdjacent <= TileHeight.Sand && diagonal <= TileHeight.Sand))
+            if (diagonal <= TileHeight.Water || (horizontalAdjacent <= TileHeight.Sand && diagonal <= TileHeight.Sand))
             { return 4; }
             return 3;
         }
-        if (diagonal < TileHeight.Sand || (horizontalAdjacent <= TileHeight.Sand && diagonal <= TileHeight.Sand))
-        { return 4; }
-        return 3;
+        if (diagonal <= TileHeight.Water || (horizontalAdjacent <= TileHeight.Sand && diagonal <= TileHeight.Sand))
+        { return 6; }
+        return 5;
     }
     static byte GrassTileIndex(TileHeight verticalAdjacent, TileHeight diagonal, TileHeight horizontalAdjacent, bool top)
     {
@@ -142,7 +142,7 @@ readonly struct Page
             { return 2; }
             return 1;
         }
-        if (top && horizontalAdjacent == verticalAdjacent && verticalAdjacent >= TileHeight.Hill)
+        if (top && horizontalAdjacent >= TileHeight.Hill && verticalAdjacent >= TileHeight.Hill)
         { return 3; }
         return 0;
     }
@@ -154,7 +154,7 @@ readonly struct Page
         { return 1; }
         if (horizontalAdjacent == TileHeight.Hill || horizontalAdjacent == TileHeight.TallHill)
         { return 2; }
-        if (horizontalAdjacent <= TileHeight.Water || verticalAdjacent <= TileHeight.Water)
+        if (verticalAdjacent <= TileHeight.Water && horizontalAdjacent < TileHeight.Grass)
         { return 3; }
         return 4;
     }
@@ -236,9 +236,10 @@ readonly struct Page
     {
         TileGraphicIndices[] tilemap = new TileGraphicIndices[pageSize.width * pageSize.height];
 
-        for (int row = 1; row < pageSize.height - 1; row++)
+        // col and row are in heightmap space
+        for (int row = 1; row < pageSize.height + 1; row++)
         {
-            for (int col = 1; col < pageSize.width - 1; col++)
+            for (int col = 1; col < pageSize.width + 1; col++)
             {
                 int tilemapIndex = (row - 1) * pageSize.width + (col - 1);
                 tilemap[tilemapIndex] = HeightmapToTileGraphicIndices(pageSize, row, col, heightmap);
