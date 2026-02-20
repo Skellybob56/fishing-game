@@ -76,7 +76,7 @@ static class Engine
         BeginTextureMode(renderTexture);
         ClearBackground(Color.Magenta);
 
-        world.RenderPage();
+        world.RenderAcre();
 
         EndTextureMode();
 

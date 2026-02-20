@@ -20,30 +20,30 @@ enum Collision : byte
     Hilly
 }
 
-readonly struct PagePosition
+readonly struct AcrePosition
 {
     public readonly int x;
     public readonly int y;
 
-    public PagePosition(int x, int y)
+    public AcrePosition(int x, int y)
     {
         this.x = x;
         this.y = y;
     }
 }
-readonly struct PageSize
+readonly struct AcreSize
 {
     public readonly int width;
     public readonly int height;
 
-    public PageSize(int width, int height)
+    public AcreSize(int width, int height)
     {
         if (width <= 0)
-        { throw new ArgumentOutOfRangeException(nameof(width), "Page size must be greater than zero"); }
+        { throw new ArgumentOutOfRangeException(nameof(width), "Acre size must be greater than zero"); }
         this.width = width;
 
         if (height <= 0)
-        { throw new ArgumentOutOfRangeException(nameof(height), "Page size must be greater than zero"); }
+        { throw new ArgumentOutOfRangeException(nameof(height), "Acre size must be greater than zero"); }
         this.height = height;
     }
 }

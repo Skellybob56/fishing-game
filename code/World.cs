@@ -7,8 +7,8 @@ namespace FishingGame;
 
 public class World
 {
-    readonly Page page;
-    readonly PageSize pageSize;
+    readonly Acre acre;
+    readonly AcreSize acreSize;
     readonly Texture2D textureAtlas;
 
     public World()
@@ -38,10 +38,10 @@ public class World
 
         textureAtlas = LoadTexture("textures/atlas.png");
 
-        pageSize = new PageSize(25, 15);
-        page = new Page(
-            new PagePosition(0, 0),
-            pageSize, heightmap
+        acreSize = new AcreSize(25, 15);
+        acre = new Acre(
+            new AcrePosition(0, 0),
+            acreSize, heightmap
         );
     }
 
@@ -81,13 +81,13 @@ public class World
         }
     }
 
-    public void RenderPage()
+    public void RenderAcre()
     {
         // unfinished
-        for (int x = 0; x<pageSize.width; x++){
-            for (int y = 0; y < pageSize.height; y++)
+        for (int x = 0; x<acreSize.width; x++){
+            for (int y = 0; y < acreSize.height; y++)
             {
-                RenderTile(page.tilemap[x + y*pageSize.width], x, y);
+                RenderTile(acre.tilemap[x + y*acreSize.width], x, y);
             }
         }
     }
