@@ -10,7 +10,7 @@ static class Engine
 
     static Engine()
     {
-        InitWindow(800, 480, "Hello World");
+        InitWindow(800, 480, "Fishing Game");
         world = new World();
     }
 
@@ -24,7 +24,6 @@ static class Engine
         BeginDrawing();
         ClearBackground(Color.White);
 
-        DrawText("Hello, world!", 12, 12, 20, Color.Black);
         world.RenderPage();
 
         EndDrawing();
