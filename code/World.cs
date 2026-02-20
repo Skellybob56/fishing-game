@@ -83,7 +83,6 @@ public class World
 
     public void RenderAcre()
     {
-        // unfinished
         for (int x = 0; x<acreSize.width; x++){
             for (int y = 0; y < acreSize.height; y++)
             {
