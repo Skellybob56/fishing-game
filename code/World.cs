@@ -1,16 +1,15 @@
 using Raylib_cs;
 using static Raylib_cs.Raylib;
 using System.Numerics;
-using System.Diagnostics;
 
 namespace FishingGame;
 
 public class World
 {
     readonly Acre acre;
-    readonly AcreSize acreSize;
+    readonly NaturalSize naturalSize;
     readonly Texture2D textureAtlas;
-
+    
     public World()
     {
         // <temp heightmap loading>
@@ -38,10 +37,10 @@ public class World
 
         textureAtlas = LoadTexture("textures/atlas.png");
 
-        acreSize = new AcreSize(25, 15);
+        naturalSize = new NaturalSize(25, 15);
         acre = new Acre(
-            new AcrePosition(0, 0),
-            acreSize, heightmap
+            new Point(0, 0),
+            naturalSize, heightmap
         );
     }
 
@@ -83,10 +82,10 @@ public class World
 
     public void RenderAcre()
     {
-        for (int x = 0; x<acreSize.width; x++){
-            for (int y = 0; y < acreSize.height; y++)
+        for (int x = 0; x<naturalSize.width; x++){
+            for (int y = 0; y < naturalSize.height; y++)
             {
-                RenderTile(acre.tilemap[x + y*acreSize.width], x, y);
+                RenderTile(acre.tilemap[x + y*naturalSize.width], x, y);
             }
         }
     }

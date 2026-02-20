@@ -1,7 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-
-namespace FishingGame;
+﻿namespace FishingGame;
 
 readonly struct Acre
 {
@@ -15,7 +12,7 @@ readonly struct Acre
     const byte HillOverlayBaseTextureIndex = 128 | 0;
     const byte TallHillOverlayBaseTextureIndex = 128 | 4;
 
-    public readonly AcrePosition position;
+    public readonly Point position;
     public readonly Collision[] collisionMap;
     public readonly TileGraphicIndices[] tilemap;
 
@@ -25,16 +22,16 @@ readonly struct Acre
             (height < TileHeight.Hill ? Collision.Walkable : Collision.Hilly));
     }
 
-    static Collision[] HeightmapToCollisionMap(AcreSize acreSize, TileHeight[] heightmap)
+    static Collision[] HeightmapToCollisionMap(NaturalSize naturalSize, TileHeight[] heightmap)
     {
-        Collision[] collisionMap = new Collision[acreSize.width * acreSize.height];
+        Collision[] collisionMap = new Collision[naturalSize.width * naturalSize.height];
 
-        for (int row = 1; row < acreSize.height - 1; row++)
+        for (int row = 1; row < naturalSize.height - 1; row++)
         {
-            for (int col = 1; col < acreSize.width - 1; col++)
+            for (int col = 1; col < naturalSize.width - 1; col++)
             {
-                int heightmapIndex = row * (acreSize.width + 2) + col;
-                int collisionMapIndex = (row - 1) * acreSize.width + (col - 1);
+                int heightmapIndex = row * (naturalSize.width + 2) + col;
+                int collisionMapIndex = (row - 1) * naturalSize.width + (col - 1);
                 collisionMap[collisionMapIndex] = HeightToCollision(heightmap[heightmapIndex]);
             }
         }
@@ -198,7 +195,7 @@ readonly struct Acre
         });
     }
 
-    static TileGraphicIndices HeightmapToTileGraphicIndices(AcreSize acreSize, int row, int col, TileHeight[] heightmap)
+    static TileGraphicIndices HeightmapToTileGraphicIndices(NaturalSize naturalSize, int row, int col, TileHeight[] heightmap)
     {
         // neighbourhood
         Span<TileHeight> neighbourhood = stackalloc TileHeight[9];
@@ -207,7 +204,7 @@ readonly struct Acre
         {
             for (int nCol = -1; nCol <= 1; nCol++)
             {
-                int heightmapIndex = (row + nRow)*(acreSize.width+2) + col + nCol;
+                int heightmapIndex = (row + nRow)*(naturalSize.width+2) + col + nCol;
                 neighbourhood[neighbourhoodIndex] = heightmap[heightmapIndex];
                 neighbourhoodIndex++;
             }
@@ -232,30 +229,30 @@ readonly struct Acre
         return new TileGraphicIndices(tileGraphicIndices);
     }
 
-    static TileGraphicIndices[] HeightmapToTilemap(AcreSize acreSize, TileHeight[] heightmap)
+    static TileGraphicIndices[] HeightmapToTilemap(NaturalSize naturalSize, TileHeight[] heightmap)
     {
-        TileGraphicIndices[] tilemap = new TileGraphicIndices[acreSize.width * acreSize.height];
+        TileGraphicIndices[] tilemap = new TileGraphicIndices[naturalSize.width * naturalSize.height];
 
         // col and row are in heightmap space
-        for (int row = 1; row < acreSize.height + 1; row++)
+        for (int row = 1; row < naturalSize.height + 1; row++)
         {
-            for (int col = 1; col < acreSize.width + 1; col++)
+            for (int col = 1; col < naturalSize.width + 1; col++)
             {
-                int tilemapIndex = (row - 1) * acreSize.width + (col - 1);
-                tilemap[tilemapIndex] = HeightmapToTileGraphicIndices(acreSize, row, col, heightmap);
+                int tilemapIndex = (row - 1) * naturalSize.width + (col - 1);
+                tilemap[tilemapIndex] = HeightmapToTileGraphicIndices(naturalSize, row, col, heightmap);
             }
         }
 
         return tilemap;
     }
 
-    public Acre(AcrePosition position, AcreSize acreSize, TileHeight[] heightmap)
+    public Acre(Point position, NaturalSize naturalSize, TileHeight[] heightmap)
     {
-        if (heightmap.Length != (acreSize.width + 2) * (acreSize.height + 2))
-        { throw new ArgumentException($"The heightmap array length must be equal to the area described by {nameof(acreSize)}", nameof(heightmap)); }
+        if (heightmap.Length != (naturalSize.width + 2) * (naturalSize.height + 2))
+        { throw new ArgumentException($"The heightmap array length must be equal to the area described by {nameof(naturalSize)}", nameof(heightmap)); }
 
         this.position = position;
-        collisionMap = HeightmapToCollisionMap(acreSize, heightmap);
-        tilemap = HeightmapToTilemap(acreSize, heightmap);
+        collisionMap = HeightmapToCollisionMap(naturalSize, heightmap);
+        tilemap = HeightmapToTilemap(naturalSize, heightmap);
     }
 }

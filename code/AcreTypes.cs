@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace FishingGame;
+﻿namespace FishingGame;
 
 enum TileHeight : byte
 {
@@ -20,30 +16,29 @@ enum Collision : byte
     Hilly
 }
 
-readonly struct AcrePosition
+readonly struct Point
 {
     public readonly int x;
     public readonly int y;
 
-    public AcrePosition(int x, int y)
+    public Point(int x, int y)
     {
         this.x = x;
         this.y = y;
     }
 }
-readonly struct AcreSize
+readonly struct NaturalSize
 {
     public readonly int width;
     public readonly int height;
-
-    public AcreSize(int width, int height)
+    public NaturalSize(int width, int height)
     {
         if (width <= 0)
-        { throw new ArgumentOutOfRangeException(nameof(width), "Acre size must be greater than zero"); }
+        { throw new ArgumentOutOfRangeException(nameof(width), "Natural size must be greater than zero"); }
         this.width = width;
 
         if (height <= 0)
-        { throw new ArgumentOutOfRangeException(nameof(height), "Acre size must be greater than zero"); }
+        { throw new ArgumentOutOfRangeException(nameof(height), "Natural size must be greater than zero"); }
         this.height = height;
     }
 }
