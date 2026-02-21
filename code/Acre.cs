@@ -17,7 +17,12 @@ readonly struct Acre
             (height < TileHeight.Hill ? Collision.Walkable : Collision.Hilly));
     }
 
-    static Collision[] HeightmapToCollisionMap(TileHeight[] heightmap)
+    static void ApplyPropsToCollisionMap(ref Collision[] collisionMap, Prop[] props)
+    {
+        throw new NotImplementedException();
+    }
+
+    static Collision[] HeightmapToCollisionMap(TileHeight[] heightmap, Prop[] lowProps, Prop[] highProps)
     {
         Collision[] collisionMap = new Collision[World.acreSize.width * World.acreSize.height];
 
@@ -31,6 +36,9 @@ readonly struct Acre
                 collisionMap[collisionMapIndex] = HeightToCollision(heightmap[heightmapIndex]);
             }
         }
+
+        ApplyPropsToCollisionMap(ref collisionMap, lowProps);
+        ApplyPropsToCollisionMap(ref collisionMap, highProps);
 
         return collisionMap;
     }
