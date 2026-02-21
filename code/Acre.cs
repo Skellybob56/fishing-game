@@ -35,9 +35,9 @@ readonly struct Acre
         return collisionMap;
     }
 
-    static byte DeepWaterTileIndex(TileHeight verticalAdjacent, TileHeight diagonal, TileHeight horizontalAdjacent)
+    static byte DeepWaterTileIndex(TileHeight vertical, TileHeight diagonal, TileHeight horizontal)
     {
-        return (byte)(verticalAdjacent == diagonal && diagonal == horizontalAdjacent && horizontalAdjacent == TileHeight.Water ? 1 : 0);
+        return (byte)(vertical == diagonal && diagonal == horizontal && horizontal == TileHeight.Water ? 1 : 0);
     }
     static byte WaterTileIndex(TileHeight vertical, TileHeight diagonal, TileHeight horizontal, bool top)
     {
@@ -107,58 +107,63 @@ readonly struct Acre
             return 0;
         }
     }
-    static byte SandTileIndex(TileHeight verticalAdjacent, TileHeight diagonal, TileHeight horizontalAdjacent, bool top)
+    static byte SandTileIndex(TileHeight vertical, TileHeight diagonal, TileHeight horizontal, bool top)
     {
-        if (horizontalAdjacent <= TileHeight.Sand && verticalAdjacent <= TileHeight.Sand)
-        { return 0; }
-        if (horizontalAdjacent >= TileHeight.Grass && verticalAdjacent >= TileHeight.Grass)
+        if (top && vertical == TileHeight.Sand && diagonal == TileHeight.Sand && horizontal == TileHeight.Grass)
         {
-            if (top && horizontalAdjacent >= TileHeight.Hill && verticalAdjacent >= TileHeight.Hill)
+
+        }
+
+        if (horizontal <= TileHeight.Sand && vertical <= TileHeight.Sand)
+        { return 0; }
+        if (horizontal >= TileHeight.Grass && vertical >= TileHeight.Grass)
+        {
+            if (top && horizontal >= TileHeight.Hill && vertical >= TileHeight.Hill)
             { return 2; }
             return 1;
         }
-        if (horizontalAdjacent >= TileHeight.Grass)
+        if (horizontal >= TileHeight.Grass)
         {
-            if (diagonal <= TileHeight.Water || (horizontalAdjacent <= TileHeight.Sand && diagonal <= TileHeight.Sand))
+            if (diagonal <= TileHeight.Water || (vertical <= TileHeight.Sand && diagonal <= TileHeight.Sand))
             { return 4; }
             return 3;
         }
-        if (diagonal <= TileHeight.Water || (horizontalAdjacent <= TileHeight.Sand && diagonal <= TileHeight.Sand))
+        if (diagonal <= TileHeight.Water || (horizontal <= TileHeight.Sand && diagonal <= TileHeight.Sand))
         { return 6; }
         return 5;
     }
-    static byte GrassTileIndex(TileHeight verticalAdjacent, TileHeight diagonal, TileHeight horizontalAdjacent, bool top)
+    static byte GrassTileIndex(TileHeight vertical, TileHeight diagonal, TileHeight horizontal, bool top)
     {
-        if (horizontalAdjacent == verticalAdjacent && verticalAdjacent == TileHeight.Water)
+        if (horizontal == vertical && vertical == TileHeight.Water)
         {
             if (top && diagonal == TileHeight.Sand) 
             { return 2; }
             return 1;
         }
-        if (top && horizontalAdjacent >= TileHeight.Hill && verticalAdjacent >= TileHeight.Hill)
+        if (top && horizontal >= TileHeight.Hill && vertical >= TileHeight.Hill)
         { return 3; }
         return 0;
     }
-    static byte HillTileIndex(TileHeight verticalAdjacent, TileHeight diagonal, TileHeight horizontalAdjacent, bool top)
+    static byte HillTileIndex(TileHeight vertical, TileHeight diagonal, TileHeight horizontal, bool top)
     {
-        if (top || verticalAdjacent == TileHeight.Hill || verticalAdjacent == TileHeight.TallHill)
+        if (top || vertical == TileHeight.Hill || vertical == TileHeight.TallHill)
         { return 0; }
         if (diagonal == TileHeight.Hill || diagonal == TileHeight.TallHill)
         { return 1; }
-        if (horizontalAdjacent == TileHeight.Hill || horizontalAdjacent == TileHeight.TallHill)
+        if (horizontal == TileHeight.Hill || horizontal == TileHeight.TallHill)
         { return 2; }
-        if (verticalAdjacent <= TileHeight.Water && horizontalAdjacent < TileHeight.Grass)
+        if (vertical <= TileHeight.Water && horizontal < TileHeight.Grass)
         { return 3; }
         return 4;
     }
-    static byte TallHillTileIndex(TileHeight verticalAdjacent, TileHeight diagonal, TileHeight horizontalAdjacent,
+    static byte TallHillTileIndex(TileHeight vertical, TileHeight diagonal, TileHeight horizontal,
         TileHeight south, TileHeight southDiagonal, bool top)
     {
         if (south == TileHeight.TallHill)
         { return 0; }
         if (southDiagonal == TileHeight.TallHill)
         { return 1; }
-        if (horizontalAdjacent == TileHeight.TallHill)
+        if (horizontal == TileHeight.TallHill)
         {
             if (top)
             { return 2; }
@@ -168,25 +173,25 @@ readonly struct Acre
         }
         if (top || southDiagonal == TileHeight.Hill)
         { return 4; }
-        if (horizontalAdjacent == TileHeight.Hill)
+        if (horizontal == TileHeight.Hill)
         { return 5; }
-        if (horizontalAdjacent <= TileHeight.Water && verticalAdjacent <= TileHeight.Water)
+        if (horizontal <= TileHeight.Water && vertical <= TileHeight.Water)
         { return 6; }
         return 7;
     }
 
     static byte NeighbourhoodToTileGraphicIndex(TileHeight self,
-        TileHeight verticalAdjacent, TileHeight diagonal, TileHeight horizontalAdjacent,
+        TileHeight vertical, TileHeight diagonal, TileHeight horizontal,
         TileHeight south, TileHeight southDiagonal, bool top)
     {
         return (byte)(self switch
         {
-            TileHeight.DeepWater => DeepWaterBaseTextureIndex + DeepWaterTileIndex(verticalAdjacent, diagonal, horizontalAdjacent),
-            TileHeight.Water     => WaterBaseTextureIndex + WaterTileIndex(verticalAdjacent, diagonal, horizontalAdjacent, top),
-            TileHeight.Sand      => SandBaseTextureIndex + SandTileIndex(verticalAdjacent, diagonal, horizontalAdjacent, top),
-            TileHeight.Grass     => GrassBaseTextureIndex + GrassTileIndex(verticalAdjacent, diagonal, horizontalAdjacent, top),
-            TileHeight.Hill      => HillBaseTextureIndex + HillTileIndex(verticalAdjacent, diagonal, horizontalAdjacent, top),
-            TileHeight.TallHill  => TallHillBaseTextureIndex + TallHillTileIndex(verticalAdjacent, diagonal, horizontalAdjacent, south, southDiagonal, top),
+            TileHeight.DeepWater => DeepWaterBaseTextureIndex + DeepWaterTileIndex(vertical, diagonal, horizontal),
+            TileHeight.Water     => WaterBaseTextureIndex + WaterTileIndex(vertical, diagonal, horizontal, top),
+            TileHeight.Sand      => SandBaseTextureIndex + SandTileIndex(vertical, diagonal, horizontal, top),
+            TileHeight.Grass     => GrassBaseTextureIndex + GrassTileIndex(vertical, diagonal, horizontal, top),
+            TileHeight.Hill      => HillBaseTextureIndex + HillTileIndex(vertical, diagonal, horizontal, top),
+            TileHeight.TallHill  => TallHillBaseTextureIndex + TallHillTileIndex(vertical, diagonal, horizontal, south, southDiagonal, top),
             _ => throw new ArgumentOutOfRangeException(nameof(self), "TileHeight variables must be within the TileHeight set")
         });
     }
