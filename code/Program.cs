@@ -1,6 +1,7 @@
 ﻿using Raylib_cs;
 using static Raylib_cs.Raylib;
 using System.Numerics;
+using System.Diagnostics;
 
 namespace FishingGame;
 
@@ -48,6 +49,10 @@ static class Engine
 
     static void Update()
     {
+        if (IsKeyPressed(KeyboardKey.F11) || (IsKeyPressed(KeyboardKey.Enter) && IsKeyDown(KeyboardKey.LeftAlt)))
+        {
+            ToggleBorderlessWindowed();
+        }
         if (IsWindowResized())
         {
             WindowResized();
