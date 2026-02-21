@@ -247,6 +247,22 @@ readonly struct Acre
         return tilemap;
     }
 
+    static byte NeighbourhoodToOverhangGraphicIndex(TileHeight current, TileHeight south, TileHeight southDiagonal, TileHeight horizontal)
+    {
+        if(current < south)
+        {
+            if (horizontal >= south) { return 2; }
+            if (southDiagonal >= south) { return 0; }
+            return 1;
+        }
+        else // current = TallHill, south = Hill
+        {
+            if (southDiagonal > south) { return 1; }
+            if (horizontal > south) { return 0; }
+            return 2;
+        }
+    }
+
     static List<Prop> HeightmapToOverhangs(TileHeight[] heightmap)
     {
         List<Prop> overhangs = [];
@@ -257,12 +273,26 @@ readonly struct Acre
             for (int col = 1; col < World.acreSize.width + 1; col++)
             {
                 int heightmapIndex = row * (World.acreSize.width + 2) + col;
-                int belowHeightmapIndex = heightmapIndex + World.acreSize.width + 2;
-                if (heightmap[belowHeightmapIndex] >= TileHeight.Hill && heightmap[heightmapIndex] != heightmap[belowHeightmapIndex])
+                int southHeightmapIndex = heightmapIndex + World.acreSize.width + 2;
+                if (heightmap[southHeightmapIndex] >= TileHeight.Hill && heightmap[heightmapIndex] != heightmap[southHeightmapIndex])
                 {
-                    // todo: generate accurate connective overhang props with more advanced checks
-                    byte grapicIndex = heightmap[belowHeightmapIndex] == TileHeight.Hill? HillOverlayBaseTextureIndex : TallHillOverlayBaseTextureIndex;
-                    overhangs.Add(new(new Point(col-1, row-1), (byte)(grapicIndex+1)));
+                    byte baseGraphicIndex = heightmap[southHeightmapIndex] == TileHeight.TallHill? TallHillOverlayBaseTextureIndex : HillOverlayBaseTextureIndex;
+                    byte leftGraphicIndex = (byte)(baseGraphicIndex + NeighbourhoodToOverhangGraphicIndex(
+                        heightmap[heightmapIndex], heightmap[southHeightmapIndex], heightmap[southHeightmapIndex - 1], heightmap[heightmapIndex - 1]));
+                    byte rightGraphicIndex = (byte)(baseGraphicIndex + NeighbourhoodToOverhangGraphicIndex(
+                        heightmap[heightmapIndex], heightmap[southHeightmapIndex], heightmap[southHeightmapIndex + 1], heightmap[heightmapIndex + 1]));
+                    if (leftGraphicIndex == rightGraphicIndex)
+                    {
+                        overhangs.Add(new Prop(new(col - 1, row - 1), leftGraphicIndex));
+                    }
+                    else
+                    {
+                        NaturalSize halfTileSize = new(TileSize.width / 2, TileSize.height);
+                        Point destination = new((col - 1) * TileSize.width, (row - 1) * TileSize.height);
+                        overhangs.Add(new Prop(destination, new NaturalRectangle(GraphicIndexToPoint(leftGraphicIndex), halfTileSize)));
+                        overhangs.Add(new Prop(destination + new Point(TileSize.width / 2, 0),
+                            new NaturalRectangle(GraphicIndexToPoint(rightGraphicIndex) + new Point(TileSize.width / 2, 0), halfTileSize)));
+                    }
                 }
             }
         }
