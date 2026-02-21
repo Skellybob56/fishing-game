@@ -16,7 +16,7 @@ readonly struct Prop(Point destination, NaturalRectangle graphicSource, Collisio
     readonly Vector2 origin = new(graphicSource.size.width/2f, graphicSource.size.height/2f);
 
     public Prop(Point position, byte graphicIndex, Collision? collision = null, bool flippedX = false, float rotation = 0) :
-        this(position * 8, new NaturalRectangle(GraphicIndexToPoint(graphicIndex), new(8, 8)), collision, flippedX, rotation)
+        this(position * TileSize, new NaturalRectangle(GraphicIndexToPoint(graphicIndex), TileSize), collision, flippedX, rotation)
     { }
 
     public void Render()

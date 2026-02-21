@@ -5,7 +5,7 @@ namespace FishingGame;
 public static class AtlasUtilities
 {
     // TileSize must be a multiple of 2
-    static readonly Point TileSize = new(8, 8);
+    public static readonly NaturalSize TileSize = new(8, 8);
 
     public const byte DeepWaterBaseTextureIndex = 0;
     public const byte WaterBaseTextureIndex = 0x10;
@@ -25,11 +25,11 @@ public static class AtlasUtilities
 
     static public Point GraphicIndexToPoint(byte graphicIndex)
     {
-        return new((graphicIndex & 0x0f) * TileSize.x, ((graphicIndex & 0xf0) >> 4) * TileSize.y);
+        return new((graphicIndex & 0x0f) * TileSize.width, ((graphicIndex & 0xf0) >> 4) * TileSize.height);
     }
     static public Point GraphicIndexQuadrantToPoint(byte graphicIndex, int quadrant)
     {
-        return new((graphicIndex & 0x0f) * TileSize.x + (quadrant % 2 * TileSize.x / 2),
-            ((graphicIndex & 0xf0) >> 4) * TileSize.y + (quadrant / 2 * TileSize.x / 2));
+        return new((graphicIndex & 0x0f) * TileSize.width + (quadrant % 2 * TileSize.width / 2),
+            ((graphicIndex & 0xf0) >> 4) * TileSize.height + (quadrant / 2 * TileSize.height / 2));
     }
 }
