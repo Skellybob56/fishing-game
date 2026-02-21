@@ -6,8 +6,8 @@ namespace FishingGame;
 
 static class Engine
 {
-    static World world;
-    static RenderTexture2D renderTexture;
+    static readonly World world;
+    static readonly RenderTexture2D renderTexture;
 
     // screen resolution vars
     const int startScreenWidth = 800;
@@ -76,7 +76,7 @@ static class Engine
         BeginTextureMode(renderTexture);
         ClearBackground(Color.Magenta);
 
-        world.RenderAcre();
+        world.RenderTilemap();
         world.RenderLowProps();
 
         // todo: render player

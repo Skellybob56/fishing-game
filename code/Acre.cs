@@ -1,20 +1,15 @@
-﻿namespace FishingGame;
+﻿using static FishingGame.AtlasUtilities;
+
+namespace FishingGame;
 
 readonly struct Acre
 {
-    const byte DeepWaterBaseTextureIndex = 0;
-    const byte WaterBaseTextureIndex = 16;
-    const byte SandBaseTextureIndex = 32;
-    const byte GrassBaseTextureIndex = 40;
-    const byte HillBaseTextureIndex = 48;
-    const byte TallHillBaseTextureIndex = 56;
-
-    const byte HillOverlayBaseTextureIndex = 128 | 0;
-    const byte TallHillOverlayBaseTextureIndex = 128 | 4;
 
     public readonly Point position;
     public readonly Collision[] collisionMap;
     public readonly TileGraphicIndices[] tilemap;
+    public readonly Prop[] lowProps;
+    public readonly Prop[] highProps;
 
     static Collision HeightToCollision(TileHeight height)
     {
@@ -22,16 +17,17 @@ readonly struct Acre
             (height < TileHeight.Hill ? Collision.Walkable : Collision.Hilly));
     }
 
-    static Collision[] HeightmapToCollisionMap(NaturalSize naturalSize, TileHeight[] heightmap)
+    static Collision[] HeightmapToCollisionMap(TileHeight[] heightmap)
     {
-        Collision[] collisionMap = new Collision[naturalSize.width * naturalSize.height];
+        Collision[] collisionMap = new Collision[World.acreSize.width * World.acreSize.height];
 
-        for (int row = 1; row < naturalSize.height - 1; row++)
+        // col and row are in heightmap space
+        for (int row = 1; row < World.acreSize.height + 1; row++)
         {
-            for (int col = 1; col < naturalSize.width - 1; col++)
+            for (int col = 1; col < World.acreSize.width + 1; col++)
             {
-                int heightmapIndex = row * (naturalSize.width + 2) + col;
-                int collisionMapIndex = (row - 1) * naturalSize.width + (col - 1);
+                int heightmapIndex = row * (World.acreSize.width + 2) + col;
+                int collisionMapIndex = (row - 1) * World.acreSize.width + (col - 1);
                 collisionMap[collisionMapIndex] = HeightToCollision(heightmap[heightmapIndex]);
             }
         }
@@ -195,7 +191,7 @@ readonly struct Acre
         });
     }
 
-    static TileGraphicIndices HeightmapToTileGraphicIndices(NaturalSize naturalSize, int row, int col, TileHeight[] heightmap)
+    static TileGraphicIndices HeightmapToTileGraphicIndices(int row, int col, TileHeight[] heightmap)
     {
         // neighbourhood
         Span<TileHeight> neighbourhood = stackalloc TileHeight[9];
@@ -204,7 +200,7 @@ readonly struct Acre
         {
             for (int nCol = -1; nCol <= 1; nCol++)
             {
-                int heightmapIndex = (row + nRow)*(naturalSize.width+2) + col + nCol;
+                int heightmapIndex = (row + nRow)*(World.acreSize.width+2) + col + nCol;
                 neighbourhood[neighbourhoodIndex] = heightmap[heightmapIndex];
                 neighbourhoodIndex++;
             }
@@ -229,30 +225,55 @@ readonly struct Acre
         return new TileGraphicIndices(tileGraphicIndices);
     }
 
-    static TileGraphicIndices[] HeightmapToTilemap(NaturalSize naturalSize, TileHeight[] heightmap)
+    static TileGraphicIndices[] HeightmapToTilemap(TileHeight[] heightmap)
     {
-        TileGraphicIndices[] tilemap = new TileGraphicIndices[naturalSize.width * naturalSize.height];
+        TileGraphicIndices[] tilemap = new TileGraphicIndices[World.acreSize.width * World.acreSize.height];
 
         // col and row are in heightmap space
-        for (int row = 1; row < naturalSize.height + 1; row++)
+        for (int row = 1; row < World.acreSize.height + 1; row++)
         {
-            for (int col = 1; col < naturalSize.width + 1; col++)
+            for (int col = 1; col < World.acreSize.width + 1; col++)
             {
-                int tilemapIndex = (row - 1) * naturalSize.width + (col - 1);
-                tilemap[tilemapIndex] = HeightmapToTileGraphicIndices(naturalSize, row, col, heightmap);
+                int tilemapIndex = (row - 1) * World.acreSize.width + (col - 1);
+                tilemap[tilemapIndex] = HeightmapToTileGraphicIndices(row, col, heightmap);
             }
         }
 
         return tilemap;
     }
 
-    public Acre(Point position, NaturalSize naturalSize, TileHeight[] heightmap)
+    static List<Prop> HeightmapToOverhangs(TileHeight[] heightmap)
     {
-        if (heightmap.Length != (naturalSize.width + 2) * (naturalSize.height + 2))
-        { throw new ArgumentException($"The heightmap array length must be equal to the area described by {nameof(naturalSize)}", nameof(heightmap)); }
+        List<Prop> overhangs = [];
+
+        // col and row are in heightmap space
+        for (int row = 1; row < World.acreSize.height + 1; row++)
+        {
+            for (int col = 1; col < World.acreSize.width + 1; col++)
+            {
+                int heightmapIndex = row * (World.acreSize.width + 2) + col;
+                int belowHeightmapIndex = heightmapIndex + World.acreSize.width + 2;
+                if (heightmap[belowHeightmapIndex] >= TileHeight.Hill && heightmap[heightmapIndex] != heightmap[belowHeightmapIndex])
+                {
+                    // todo: generate accurate connective overhang props with more advanced checks
+                    byte grapicIndex = heightmap[belowHeightmapIndex] == TileHeight.Hill? HillOverlayBaseTextureIndex : TallHillOverlayBaseTextureIndex;
+                    overhangs.Add(new(new Point(col-1, row-1), (byte)(grapicIndex+1)));
+                }
+            }
+        }
+        return overhangs;
+    }
+
+    public Acre(Point position, TileHeight[] heightmap, List<Prop> lowProps, List<Prop> highProps)
+    {
+        if (heightmap.Length != (World.acreSize.width + 2) * (World.acreSize.height + 2))
+        { throw new ArgumentException($"The heightmap array length must be equal to the area described by {nameof(World.acreSize)}", nameof(heightmap)); }
 
         this.position = position;
-        collisionMap = HeightmapToCollisionMap(naturalSize, heightmap);
-        tilemap = HeightmapToTilemap(naturalSize, heightmap);
+        collisionMap = HeightmapToCollisionMap(heightmap);
+        tilemap = HeightmapToTilemap(heightmap);
+
+        this.lowProps = lowProps.ToArray();
+        this.highProps = highProps.Concat(HeightmapToOverhangs(heightmap)).ToArray();
     }
 }

@@ -16,33 +16,6 @@ enum Collision : byte
     Hilly
 }
 
-readonly struct Point
-{
-    public readonly int x;
-    public readonly int y;
-
-    public Point(int x, int y)
-    {
-        this.x = x;
-        this.y = y;
-    }
-}
-readonly struct NaturalSize
-{
-    public readonly int width;
-    public readonly int height;
-    public NaturalSize(int width, int height)
-    {
-        if (width <= 0)
-        { throw new ArgumentOutOfRangeException(nameof(width), "Natural size must be greater than zero"); }
-        this.width = width;
-
-        if (height <= 0)
-        { throw new ArgumentOutOfRangeException(nameof(height), "Natural size must be greater than zero"); }
-        this.height = height;
-    }
-}
-
 readonly struct TileGraphicIndices
 {
     public readonly byte topLeft;
