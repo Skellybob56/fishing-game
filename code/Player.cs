@@ -1,0 +1,5 @@
+﻿namespace FishingGame;
+
+class Player
+{
+}
