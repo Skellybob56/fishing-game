@@ -117,11 +117,6 @@ readonly struct Acre
     }
     static byte SandTileIndex(TileHeight vertical, TileHeight diagonal, TileHeight horizontal, bool top)
     {
-        if (top && vertical == TileHeight.Sand && diagonal == TileHeight.Sand && horizontal == TileHeight.Grass)
-        {
-
-        }
-
         if (horizontal <= TileHeight.Sand && vertical <= TileHeight.Sand)
         { return 0; }
         if (horizontal >= TileHeight.Grass && vertical >= TileHeight.Grass)
