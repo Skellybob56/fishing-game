@@ -30,6 +30,11 @@ class Player
         this.position = position;
     }
 
+    public void Update()
+    {
+        
+    }
+
     public void Render()
     {
         DrawTextureRec(

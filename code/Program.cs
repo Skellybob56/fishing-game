@@ -67,6 +67,8 @@ static class Engine
         {
             WindowResized();
         }
+
+        player.Update();
     }
 
     static void RenderRenderTextureToScreen()
