@@ -8,9 +8,9 @@ namespace FishingGame;
 
 readonly struct Prop(Point destination, NaturalRectangle graphicSource, Collision? collision = null, bool flippedX = false, float rotation = 0)
 { 
-    readonly Point destination = destination;
+    public readonly Point destination = destination;
     readonly NaturalRectangle graphicSource = graphicSource;
-    readonly Collision? collision = collision;
+    public readonly Collision? collision = collision;
     readonly bool flippedX = flippedX;
     readonly float rotation = rotation;
 
