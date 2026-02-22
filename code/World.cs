@@ -7,10 +7,27 @@ namespace FishingGame;
 
 public class World
 {
+    private static World? Instance;
     readonly Acre acre;
-    static public readonly NaturalSize acreSize = new(25, 15);
+    public static readonly NaturalSize acreSize = new(25, 15);
     
-    public World()
+    public static World Create()
+    {
+        if (Instance != null)
+        {
+            throw new InvalidOperationException("World already exists.");
+        }
+        Instance = new World();
+
+        return Instance;
+    }
+
+    public static void Destroy()
+    {
+        Instance = null;
+    }
+    
+    private World()
     {
         // <temp map loading>
         byte[] byte_heightmap = [

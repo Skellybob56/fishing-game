@@ -50,7 +50,7 @@ static class Engine
         atlasTexture = LoadTexture("textures/atlas.png");
         playerTexture = LoadTexture("textures/player.png");
 
-        world = new World();
+        world = World.Create();
         player = new Player();
         renderTexture = LoadRenderTexture(internalWidth, internalHeight);
         SetTextureFilter(renderTexture.Texture, TextureFilter.Point);
