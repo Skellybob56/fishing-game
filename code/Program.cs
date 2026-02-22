@@ -70,6 +70,7 @@ static class Engine
             WindowResized();
         }
 
+        controller.Update();
         player.Update();
     }
 

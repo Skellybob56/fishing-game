@@ -3,6 +3,7 @@
 class Controller
 {
     private static Controller? Instance;
+
     public static Controller Create()
     {
         if (Instance != null)
@@ -17,5 +18,10 @@ class Controller
     public static void Destroy()
     {
         Instance = null;
+    }
+
+    public void Update()
+    {
+        
     }
 }
