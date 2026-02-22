@@ -22,7 +22,7 @@ readonly struct Prop(Point destination, NaturalRectangle graphicSource, Collisio
     public void Render()
     {
         DrawTexturePro(
-            textureAtlas,
+            Engine.atlasTexture,
             flippedX? new((Vector2)graphicSource.position, new(-graphicSource.size.width, graphicSource.size.height)) : (Rectangle)graphicSource,
             new Rectangle((Vector2)destination + origin, (Vector2)graphicSource.size),
             origin,

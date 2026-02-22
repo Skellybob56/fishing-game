@@ -7,8 +7,13 @@ namespace FishingGame;
 
 static class Engine
 {
+    // singletons
     static readonly World world;
     static readonly RenderTexture2D renderTexture;
+
+    // assets
+    public static readonly Texture2D atlasTexture;
+    public static readonly Texture2D playerTexture;
 
     // screen resolution vars
     const int startScreenWidth = 800;
@@ -42,6 +47,8 @@ static class Engine
         InitWindow(startScreenWidth, startScreenHeight, "Fishing Game");
         WindowResized();
 
+        atlasTexture = LoadTexture("textures/atlas.png");
+        playerTexture = LoadTexture("textures/player.png");
         renderTexture = LoadRenderTexture(internalWidth, internalHeight);
         SetTextureFilter(renderTexture.Texture, TextureFilter.Point);
         world = new World();

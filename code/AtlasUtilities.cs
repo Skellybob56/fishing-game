@@ -21,8 +21,6 @@ public static class AtlasUtilities
     public const byte RockBaseTextureIndex = PropBaseTextureIndex + 0x10;
     public const byte FlowerBaseTextureIndex = PropBaseTextureIndex + 0x18;
 
-    public static readonly Texture2D textureAtlas = Raylib.LoadTexture("textures/atlas.png");
-
     static public Point GraphicIndexToPoint(byte graphicIndex)
     {
         return new((graphicIndex & 0x0f) * TileSize.width, ((graphicIndex & 0xf0) >> 4) * TileSize.height);

@@ -71,7 +71,7 @@ public class World
     {
         int quad_offset_x = (quadrant & 1) * 4;
         int quad_offset_y = (quadrant & 2) * 2;
-        DrawTextureRec(textureAtlas,
+        DrawTextureRec(Engine.atlasTexture,
             new Rectangle((Vector2)GraphicIndexQuadrantToPoint(graphicIndex, quadrant), 4, 4),
             new Vector2(x*8 + quad_offset_x, y*8 + quad_offset_y),
             Color.White
@@ -86,7 +86,7 @@ public class World
         {
             byte graphicIndex = tileGraphicIndices.topLeft;
             Rectangle source = new((Vector2)GraphicIndexToPoint(graphicIndex), 8, 8);
-            DrawTextureRec(textureAtlas,
+            DrawTextureRec(Engine.atlasTexture,
                 source,
                 new Vector2(x * 8, y * 8),
                 Color.White
