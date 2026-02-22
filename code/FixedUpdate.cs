@@ -4,7 +4,7 @@ namespace FishingGame;
 
 static partial class Engine
 {
-    public const int FixedUpdateIntervalMSec = 100;
+    public const int FixedUpdateIntervalMSec = 50;
     public const double FixedUpdateInterval = FixedUpdateIntervalMSec / 1000d;
     public const float FixedUpdateIntervalF = (float)FixedUpdateInterval;
     static long currentTick = 0;

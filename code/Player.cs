@@ -9,7 +9,9 @@ class Player : Singleton<Player>
     public static Player Create(Vector2 position)
     { return Register(new Player(position)); }
 
-    const float playerSpeed = 1f;
+    readonly NaturalSize spriteSize = new(16, 16);
+
+    const float playerSpeed = 0.5f;
 
     Vector2 position;
     readonly Lock sharedDataLock = new();
@@ -17,26 +19,26 @@ class Player : Singleton<Player>
 
     private Player(Vector2 position)
     {
-        this.position = position * playerSpeed;
+        this.position = position;
     }
 
     public void FixedUpdate()
     {
         lock (sharedDataLock)
         {
-            position += Controller.WishDir;
+            position += Controller.WishDir * playerSpeed;
         }
     }
 
-    public void Render()
+    public void Render(Vector2 screenPosition, float graphicalScale)
     {
         lock (sharedDataLock)
         {
-            DrawTextureRec(
+            DrawTexturePro(
                 Engine.playerTexture,
-                new(0, 16, 16, 16),
-                position,
-                Color.White
+                new(0, spriteSize.height, (Vector2)spriteSize),
+                new(position * graphicalScale + screenPosition, (Vector2)spriteSize * graphicalScale),
+                Vector2.Zero, 0f, Color.White
                 );
         }
     }

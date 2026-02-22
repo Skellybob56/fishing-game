@@ -35,7 +35,7 @@ static partial class Engine
     static float screenRatio;
 
     static bool screenHeightLimited;
-    static float scale;
+    static float graphicalScale;
 
     static void WindowResized()
     {
@@ -43,7 +43,7 @@ static partial class Engine
         screenHeight = GetScreenHeight();
         screenRatio = (float)screenWidth / (float)screenHeight;
         screenHeightLimited = screenRatio > internalRatio;
-        scale = screenHeightLimited ?
+        graphicalScale = screenHeightLimited ?
             screenHeight / (float)internalHeight :
             screenWidth / (float)internalWidth;
     }
@@ -92,8 +92,6 @@ static partial class Engine
         world.RenderTilemap();
         world.RenderLowProps();
 
-        player.Render();
-
         EndTextureMode();
 
         BeginTextureMode(highRenderTexture);
@@ -111,12 +109,15 @@ static partial class Engine
 
         Rectangle source = new(0, 0, internalWidth, -internalHeight);
         Rectangle dest = new(
-                screenHeightLimited ? (screenWidth - scale * internalWidth) / 2f : 0f,
-                screenHeightLimited ? 0f : (screenHeight - scale * internalHeight) / 2f,
-                internalWidth * scale, internalHeight * scale
+                screenHeightLimited ? (screenWidth - graphicalScale * internalWidth) / 2f : 0f,
+                screenHeightLimited ? 0f : (screenHeight - graphicalScale * internalHeight) / 2f,
+                internalWidth * graphicalScale, internalHeight * graphicalScale
                 );
 
         DrawTexturePro(lowRenderTexture.Texture, source, dest, Vector2.Zero, 0f, Color.White);
+
+        player.Render(dest.Position, graphicalScale);
+
         DrawTexturePro(highRenderTexture.Texture, source, dest, Vector2.Zero, 0f, Color.White);
 
         EndDrawing();
