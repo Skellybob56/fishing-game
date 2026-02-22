@@ -1,4 +1,4 @@
-﻿using static FishingGame.AtlasUtilities;
+﻿using static FishingGame.Utilities;
 
 namespace FishingGame;
 

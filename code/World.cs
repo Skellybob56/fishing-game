@@ -1,7 +1,7 @@
 using Raylib_cs;
 using static Raylib_cs.Raylib;
 using System.Numerics;
-using static FishingGame.AtlasUtilities;
+using static FishingGame.Utilities;
 
 namespace FishingGame;
 

@@ -2,7 +2,7 @@
 
 namespace FishingGame;
 
-public static class AtlasUtilities
+public static class Utilities
 {
     // TileSize must be a multiple of 2
     public static readonly NaturalSize TileSize = new(8, 8);
