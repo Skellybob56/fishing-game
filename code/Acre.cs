@@ -31,12 +31,16 @@ readonly struct Acre
             (height < TileHeight.Hill ? Collision.Walkable : Collision.Hilly));
     }
 
-    static void ApplyPropsToCollisionMap(ref Collision[] collisionMap, List<Prop> props)
+    static void ApplyPropsToCollisionMap(ref Collision[] collisionMap, Prop[] props)
     {
-        throw new NotImplementedException();
+        foreach (Prop prop in props)
+        {
+            if (prop.collision == null) { continue; }
+            collisionMap[PixelPosToIndex(prop.location)] = (Collision)prop.collision;
+        }
     }
 
-    static Collision[] HeightmapToCollisionMap(TileHeight[] heightmap, List<Prop> lowProps, List<Prop> highProps)
+    static Collision[] HeightmapToCollisionMap(TileHeight[] heightmap, Prop[] lowProps, Prop[] highProps)
     {
         Collision[] collisionMap = new Collision[World.acreSize.width * World.acreSize.height];
 
@@ -321,11 +325,11 @@ readonly struct Acre
         if (heightmap.Length != (World.acreSize.width + 2) * (World.acreSize.height + 2))
         { throw new ArgumentException($"The heightmap array length must be equal to the area described by {nameof(World.acreSize)}", nameof(heightmap)); }
 
-        this.position = position;
-        collisionMap = HeightmapToCollisionMap(heightmap, lowProps, highProps);
-        tilemap = HeightmapToTilemap(heightmap);
-
         this.lowProps = lowProps.ToArray();
         this.highProps = highProps.Concat(HeightmapToOverhangs(heightmap)).ToArray();
+
+        this.position = position;
+        collisionMap = HeightmapToCollisionMap(heightmap, this.lowProps, this.highProps);
+        tilemap = HeightmapToTilemap(heightmap);
     }
 }
