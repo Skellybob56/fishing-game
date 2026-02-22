@@ -93,7 +93,7 @@ static class Engine
         world.RenderTilemap();
         world.RenderLowProps();
 
-        // todo: render player
+        player.Render();
 
         world.RenderHighProps();
 
