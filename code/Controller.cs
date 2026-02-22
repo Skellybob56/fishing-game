@@ -1,24 +1,9 @@
 ﻿namespace FishingGame;
 
-class Controller
+class Controller : Singleton<Controller>
 {
-    private static Controller? Instance;
-
     public static Controller Create()
-    {
-        if (Instance != null)
-        {
-            throw new InvalidOperationException("Controller already exists.");
-        }
-        Instance = new Controller();
-
-        return Instance;
-    }
-
-    public static void Destroy()
-    {
-        Instance = null;
-    }
+    { return Register(new Controller()); }
 
     public void Update()
     {

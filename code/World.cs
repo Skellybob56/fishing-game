@@ -5,27 +5,13 @@ using static FishingGame.Utilities;
 
 namespace FishingGame;
 
-public class World
+public class World : Singleton<World>
 {
-    private static World? Instance;
+    public static World Create()
+    { return Register(new World()); }
+
     readonly Acre acre;
     public static readonly NaturalSize acreSize = new(25, 15);
-    
-    public static World Create()
-    {
-        if (Instance != null)
-        {
-            throw new InvalidOperationException("World already exists.");
-        }
-        Instance = new World();
-
-        return Instance;
-    }
-
-    public static void Destroy()
-    {
-        Instance = null;
-    }
 
     private World()
     {

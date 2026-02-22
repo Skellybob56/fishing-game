@@ -4,26 +4,13 @@ using System.Numerics;
 
 namespace FishingGame;
 
-class Player
+class Player : Singleton<Player>
 {
-    private static Player? Instance;
+    public static Player Create(Vector2 position)
+    { return Register(new Player(position)); }
+
     Vector2 position;
 
-    public static Player Create(Vector2 position)
-    {
-        if (Instance != null)
-        {
-            throw new InvalidOperationException("Player already exists.");
-        }
-        Instance = new Player(position);
-
-        return Instance;
-    }
-
-    public static void Destroy()
-    {
-        Instance = null;
-    }
 
     private Player(Vector2 position)
     {
