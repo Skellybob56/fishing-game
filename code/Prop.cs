@@ -13,7 +13,6 @@ readonly struct Prop(Point destination, NaturalRectangle graphicSource, Collisio
     readonly Collision? collision = collision;
     readonly bool flippedX = flippedX;
     readonly float rotation = rotation;
-    readonly Vector2 origin = new(graphicSource.size.width/2f, graphicSource.size.height/2f);
 
     public Prop(Point position, byte graphicIndex, Collision? collision = null, bool flippedX = false, float rotation = 0) :
         this(position * TileSize, new NaturalRectangle(GraphicIndexToPoint(graphicIndex), TileSize), collision, flippedX, rotation)
@@ -24,8 +23,8 @@ readonly struct Prop(Point destination, NaturalRectangle graphicSource, Collisio
         DrawTexturePro(
             Engine.atlasTexture,
             flippedX? new((Vector2)graphicSource.position, new(-graphicSource.size.width, graphicSource.size.height)) : (Rectangle)graphicSource,
-            new Rectangle((Vector2)destination + origin, (Vector2)graphicSource.size),
-            origin,
+            new Rectangle((Vector2)destination + new Vector2(graphicSource.size.width / 2f, graphicSource.size.height / 2f), (Vector2)graphicSource.size),
+            new(graphicSource.size.width / 2f, graphicSource.size.height / 2f),
             rotation,
             Color.White
             );
