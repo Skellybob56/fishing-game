@@ -26,7 +26,7 @@ public class World
     {
         Instance = null;
     }
-    
+
     private World()
     {
         // <temp map loading>

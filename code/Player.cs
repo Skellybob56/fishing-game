@@ -6,11 +6,28 @@ namespace FishingGame;
 
 class Player
 {
+    private static Player? Instance;
     Vector2 position;
 
-    public Player()
+    public static Player Create(Vector2 position)
     {
+        if (Instance != null)
+        {
+            throw new InvalidOperationException("Player already exists.");
+        }
+        Instance = new Player(position);
 
+        return Instance;
+    }
+
+    public static void Destroy()
+    {
+        Instance = null;
+    }
+
+    private Player(Vector2 position)
+    {
+        this.position = position;
     }
 
     public void Render()
@@ -18,7 +35,7 @@ class Player
         DrawTextureRec(
             Engine.playerTexture,
             new(0, 16, 16, 16),
-            new(32, 32),
+            position,
             Color.White
             );
     }

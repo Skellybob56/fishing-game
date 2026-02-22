@@ -51,7 +51,8 @@ static class Engine
         playerTexture = LoadTexture("textures/player.png");
 
         world = World.Create();
-        player = new Player();
+        player = Player.Create(new(32, 32));
+
         renderTexture = LoadRenderTexture(internalWidth, internalHeight);
         SetTextureFilter(renderTexture.Texture, TextureFilter.Point);
     }
