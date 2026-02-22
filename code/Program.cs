@@ -15,7 +15,8 @@ static partial class Engine
     static readonly Controller controller;
     static readonly Player player;
     static readonly World world;
-    static readonly RenderTexture2D renderTexture;
+    static readonly RenderTexture2D lowRenderTexture;
+    static readonly RenderTexture2D highRenderTexture;
 
     // fixed update
     public static bool Running { get; private set; } = true;
@@ -60,8 +61,10 @@ static partial class Engine
         player = Player.Create(new(32, 32));
         world = World.Create();
 
-        renderTexture = LoadRenderTexture(internalWidth, internalHeight);
-        SetTextureFilter(renderTexture.Texture, TextureFilter.Point);
+        lowRenderTexture = LoadRenderTexture(internalWidth, internalHeight);
+        SetTextureFilter(lowRenderTexture.Texture, TextureFilter.Point);
+        highRenderTexture = LoadRenderTexture(internalWidth, internalHeight);
+        SetTextureFilter(highRenderTexture.Texture, TextureFilter.Point);
 
         fixedUpdateThread = new Thread(FixedUpdateLoop);
         fixedUpdateThread.Start();
@@ -81,26 +84,9 @@ static partial class Engine
         controller.Update();
     }
 
-    static void RenderRenderTextureToScreen()
+    static void RenderToTextures()
     {
-        BeginDrawing();
-        ClearBackground(Color.Black);
-        DrawTexturePro(
-            renderTexture.Texture,
-            new Rectangle(0, 0, internalWidth, -internalHeight),
-            new Rectangle(
-                screenHeightLimited ? (screenWidth - scale * internalWidth) / 2f : 0f,
-                screenHeightLimited ? 0f : (screenHeight - scale * internalHeight) / 2f,
-                internalWidth * scale, internalHeight * scale),
-            Vector2.Zero, 0f, Color.White
-            );
-        EndDrawing();
-    }
-
-    static void Render()
-    {
-        // render to texture
-        BeginTextureMode(renderTexture);
+        BeginTextureMode(lowRenderTexture);
         ClearBackground(Color.Magenta);
 
         world.RenderTilemap();
@@ -108,12 +94,38 @@ static partial class Engine
 
         player.Render();
 
+        EndTextureMode();
+
+        BeginTextureMode(highRenderTexture);
+        ClearBackground(new(0, 0, 0, 0)); // transparent background
+
         world.RenderHighProps();
 
         EndTextureMode();
+    }
 
-        // render to screen
-        RenderRenderTextureToScreen();
+    static void RenderToScreen()
+    {
+        BeginDrawing();
+        ClearBackground(Color.Black);
+
+        Rectangle source = new(0, 0, internalWidth, -internalHeight);
+        Rectangle dest = new(
+                screenHeightLimited ? (screenWidth - scale * internalWidth) / 2f : 0f,
+                screenHeightLimited ? 0f : (screenHeight - scale * internalHeight) / 2f,
+                internalWidth * scale, internalHeight * scale
+                );
+
+        DrawTexturePro(lowRenderTexture.Texture, source, dest, Vector2.Zero, 0f, Color.White);
+        DrawTexturePro(highRenderTexture.Texture, source, dest, Vector2.Zero, 0f, Color.White);
+
+        EndDrawing();
+    }
+
+    static void Render()
+    {
+        RenderToTextures();
+        RenderToScreen();
     }
 
     // STAThread is required if you deploy using NativeAOT on Windows - See https://github.com/raylib-cs/raylib-cs/issues/301
