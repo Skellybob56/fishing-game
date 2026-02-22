@@ -11,8 +11,9 @@ static class Engine
     public static readonly Texture2D playerTexture;
 
     // singletons
-    static readonly World world;
+    static readonly Controller controller;
     static readonly Player player;
+    static readonly World world;
     static readonly RenderTexture2D renderTexture;
 
     // screen resolution vars
@@ -50,8 +51,9 @@ static class Engine
         atlasTexture = LoadTexture("textures/atlas.png");
         playerTexture = LoadTexture("textures/player.png");
 
-        world = World.Create();
+        controller = Controller.Create();
         player = Player.Create(new(32, 32));
+        world = World.Create();
 
         renderTexture = LoadRenderTexture(internalWidth, internalHeight);
         SetTextureFilter(renderTexture.Texture, TextureFilter.Point);
