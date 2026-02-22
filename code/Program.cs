@@ -1,10 +1,11 @@
 ﻿using Raylib_cs;
-using static Raylib_cs.Raylib;
+using System.Diagnostics;
 using System.Numerics;
+using static Raylib_cs.Raylib;
 
 namespace FishingGame;
 
-static class Engine
+static partial class Engine
 {
     // assets
     public static readonly Texture2D atlasTexture;
@@ -15,6 +16,10 @@ static class Engine
     static readonly Player player;
     static readonly World world;
     static readonly RenderTexture2D renderTexture;
+
+    // fixed update
+    public static bool Running { get; private set; } = true;
+    static readonly Thread fixedUpdateThread;
 
     // screen resolution vars
     const int startScreenWidth = 800;
@@ -57,6 +62,9 @@ static class Engine
 
         renderTexture = LoadRenderTexture(internalWidth, internalHeight);
         SetTextureFilter(renderTexture.Texture, TextureFilter.Point);
+
+        fixedUpdateThread = new Thread(FixedUpdateLoop);
+        fixedUpdateThread.Start();
     }
 
     static void Update()
@@ -71,7 +79,6 @@ static class Engine
         }
 
         controller.Update();
-        player.Update();
     }
 
     static void RenderRenderTextureToScreen()
@@ -113,10 +120,12 @@ static class Engine
     [System.STAThread]
     public static void Main()
     {
-        while (!WindowShouldClose())
+        while (Running)
         {
             Update();
             Render();
+
+            Running = !WindowShouldClose();
         }
 
         CloseWindow();
