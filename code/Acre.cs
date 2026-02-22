@@ -11,6 +11,20 @@ readonly struct Acre
     public readonly Prop[] lowProps;
     public readonly Prop[] highProps;
 
+    // tile position to index into stored maps
+    static int PosToIndex(int x, int y)
+    {
+        return x + (y * World.acreSize.width);
+    }
+    static int PosToIndex(Point pos)
+    {
+        return pos.x + (pos.y * World.acreSize.width);
+    }
+    static int PixelPosToIndex(Point pos)
+    {
+        return (pos.x / TileSize.width) + ((pos.y / TileSize.height) * World.acreSize.width);
+    }
+
     static Collision HeightToCollision(TileHeight height)
     {
         return (height <= TileHeight.Water ? Collision.Wet : 
