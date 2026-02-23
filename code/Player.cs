@@ -13,6 +13,7 @@ class Player : Singleton<Player>
     readonly NaturalSize spriteSize = new(16, 16);
 
     const float playerSpeed = 1f;
+    const float playerRolloverDeadzone = 0.2f; // how close you must be to a pixel grid boundry to shift in the opposite direction of prior movement
 
     Vector2 fixedPosition;
     Vector2 sharedPosition;
@@ -20,7 +21,8 @@ class Player : Singleton<Player>
     Vector2 renderPosition;
     Vector2 renderOldPosition;
     Vector2 renderInterpolatedPosition;
-    Vector2 displacement;
+    Vector2 displacement = Vector2.Zero;
+    Vector2 oldDisplacement = Vector2.Zero;
     readonly Lock sharedDataLock = new();
     int oldCurrentInterpTick = -1;
 
@@ -38,13 +40,27 @@ class Player : Singleton<Player>
     {
         displacement = Controller.WishDir * playerSpeed;
 
-        // todo: change round to round in the direction of the latest movement
-        if (displacement.X == 0)
-        { fixedPosition = new(MathF.Round(fixedPosition.X), fixedPosition.Y); }
-        if (displacement.Y == 0)
-        { fixedPosition = new(fixedPosition.X, MathF.Round(fixedPosition.Y)); }
+        if (oldDisplacement.X != 0 && displacement.X == 0)
+        {
+            float fract = fixedPosition.X - MathF.Truncate(fixedPosition.X);
+            if (fract <= playerRolloverDeadzone || fract >= (1f-playerRolloverDeadzone))
+            { fixedPosition = new(MathF.Round(fixedPosition.X), fixedPosition.Y); }
+            else { fixedPosition = new(oldDisplacement.X > 0 ? MathF.Ceiling(fixedPosition.X) : MathF.Floor(fixedPosition.X), fixedPosition.Y); }
+
+        }
+        if (oldDisplacement.Y != 0 && displacement.Y == 0)
+        {
+            float fract = fixedPosition.Y - MathF.Truncate(fixedPosition.Y);
+            if (fract <= playerRolloverDeadzone || fract >= (1f - playerRolloverDeadzone))
+            { fixedPosition = new(fixedPosition.X, MathF.Round(fixedPosition.Y)); }
+            else { fixedPosition = new(fixedPosition.X, oldDisplacement.Y > 0 ? MathF.Ceiling(fixedPosition.Y) : MathF.Floor(fixedPosition.Y)); }
+
+        }
 
         fixedPosition += displacement;
+
+        // old vars
+        oldDisplacement = displacement;
 
         // share data
         lock (sharedDataLock)
