@@ -1,6 +1,7 @@
 ﻿using Raylib_cs;
 using static Raylib_cs.Raylib;
 using System.Numerics;
+using System.Diagnostics;
 
 namespace FishingGame;
 
@@ -18,9 +19,11 @@ class Player : Singleton<Player>
     Vector2 sharedOldPosition;
     Vector2 renderPosition;
     Vector2 renderOldPosition;
+    Vector2 renderInterpolatedPosition;
     Vector2 displacement;
-    bool newFixedData = false;
     readonly Lock sharedDataLock = new();
+    int latestTick;
+    Stopwatch interpolationStopwatch = new();
 
 
     private Player(Vector2 position)
@@ -49,25 +52,30 @@ class Player : Singleton<Player>
         {
             sharedOldPosition = sharedPosition;
             sharedPosition = fixedPosition;
-            newFixedData = true;
         }
     }
 
     public void Render(Vector2 screenPosition, float graphicalScale)
     {
-        if (newFixedData)
+        // load data
+        if (latestTick != Engine.currentTick)
         {
             lock (sharedDataLock)
             {
                 renderPosition = sharedPosition;
                 renderOldPosition = sharedOldPosition;
-                newFixedData = false;
             }
+            interpolationStopwatch.Restart();
+            latestTick = Engine.currentTick;
         }
+
+        renderInterpolatedPosition = Vector2.Lerp(renderOldPosition, renderPosition, 
+            (float)interpolationStopwatch.Elapsed.TotalSeconds * (1f/Engine.FixedUpdateIntervalF));
+
         DrawTexturePro(
             Engine.playerTexture,
             new(0, spriteSize.height, (Vector2)spriteSize),
-            new(renderPosition * graphicalScale + screenPosition, (Vector2)spriteSize * graphicalScale),
+            new(renderInterpolatedPosition * graphicalScale + screenPosition, (Vector2)spriteSize * graphicalScale),
             Vector2.Zero, 0f, Color.White
             );
     }
