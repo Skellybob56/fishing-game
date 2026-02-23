@@ -15,17 +15,21 @@ class Player : Singleton<Player>
     const float playerSpeed = 1f;
     const float playerRolloverDeadzone = 0.2f; // how close you must be to a pixel grid boundry to shift in the opposite direction of prior movement
 
+    // fixed
     Vector2 fixedPosition;
+    Vector2 displacement = Vector2.Zero;
+    Vector2 oldDisplacement = Vector2.Zero;
+
+    // shared
+    readonly Lock sharedDataLock = new();
+    int oldCurrentInterpTick = -1;
     Vector2 sharedPosition;
     Vector2 sharedOldPosition;
+
+    // render
     Vector2 renderPosition;
     Vector2 renderOldPosition;
     Vector2 renderInterpolatedPosition;
-    Vector2 displacement = Vector2.Zero;
-    Vector2 oldDisplacement = Vector2.Zero;
-    readonly Lock sharedDataLock = new();
-    int oldCurrentInterpTick = -1;
-
 
     private Player(Vector2 position)
     {
