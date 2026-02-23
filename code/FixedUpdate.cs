@@ -7,11 +7,12 @@ static partial class Engine
     public const int FixedUpdateIntervalMSec = 50;
     public const double FixedUpdateInterval = FixedUpdateIntervalMSec / 1000d;
     public const float FixedUpdateIntervalF = (float)FixedUpdateInterval;
-    static long currentTick = 0;
+    static Stopwatch stopwatchFixedUpdate = new();
+    static long lastTickTimeFixedMSec;
+    public static int currentTick { get; private set; } = 0;
 
     public static void FixedUpdateLoop()
     {
-        Stopwatch stopwatchFixedUpdate = new Stopwatch();
         stopwatchFixedUpdate.Start();
 
         Console.WriteLine(Running);
@@ -19,15 +20,13 @@ static partial class Engine
         {
             long currentTimeFixedMSec;
             long nextTickTimeFixedMSec;
-            long tickStartTimeFixedMSec;
             int remainingTimeFixedMSec;
-
-            tickStartTimeFixedMSec = stopwatchFixedUpdate.ElapsedMilliseconds;
-            FixedUpdate();
+            lastTickTimeFixedMSec = stopwatchFixedUpdate.ElapsedMilliseconds;
             ++currentTick;
+            FixedUpdate();
 
             currentTimeFixedMSec = stopwatchFixedUpdate.ElapsedMilliseconds;
-            nextTickTimeFixedMSec = tickStartTimeFixedMSec + FixedUpdateIntervalMSec;
+            nextTickTimeFixedMSec = lastTickTimeFixedMSec + FixedUpdateIntervalMSec;
             remainingTimeFixedMSec = (int)(nextTickTimeFixedMSec - currentTimeFixedMSec);
             if (remainingTimeFixedMSec > 0)
             {
