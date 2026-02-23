@@ -11,7 +11,7 @@ class Player : Singleton<Player>
 
     readonly NaturalSize spriteSize = new(16, 16);
 
-    const float playerSpeed = 0.5f;
+    const float playerSpeed = 1f;
 
     Vector2 position;
     readonly Lock sharedDataLock = new();
