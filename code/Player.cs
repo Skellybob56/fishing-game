@@ -36,6 +36,12 @@ class Player : Singleton<Player>
     {
         displacement = Controller.WishDir * playerSpeed;
 
+        // todo: change round to round in the direction of the latest movement
+        if (displacement.X == 0)
+        { fixedPosition = new(MathF.Round(fixedPosition.X), fixedPosition.Y); }
+        if (displacement.Y == 0)
+        { fixedPosition = new(fixedPosition.X, MathF.Round(fixedPosition.Y)); }
+
         fixedPosition += displacement;
 
         // share data
