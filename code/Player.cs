@@ -22,8 +22,7 @@ class Player : Singleton<Player>
     Vector2 renderInterpolatedPosition;
     Vector2 displacement;
     readonly Lock sharedDataLock = new();
-    int latestTick;
-    Stopwatch interpolationStopwatch = new();
+    int oldCurrentInterpTick = -1;
 
 
     private Player(Vector2 position)
@@ -58,19 +57,17 @@ class Player : Singleton<Player>
     public void Render(Vector2 screenPosition, float graphicalScale)
     {
         // load data
-        if (latestTick != Engine.currentTick)
+        if (oldCurrentInterpTick != Engine.CurrentInterpTick)
         {
             lock (sharedDataLock)
             {
                 renderPosition = sharedPosition;
                 renderOldPosition = sharedOldPosition;
             }
-            interpolationStopwatch.Restart();
-            latestTick = Engine.currentTick;
+            oldCurrentInterpTick = Engine.CurrentInterpTick;
         }
 
-        renderInterpolatedPosition = Vector2.Lerp(renderOldPosition, renderPosition, 
-            (float)interpolationStopwatch.Elapsed.TotalSeconds * (1f/Engine.FixedUpdateIntervalF));
+        renderInterpolatedPosition = Vector2.Lerp(renderOldPosition, renderPosition, Engine.InterpT);
 
         DrawTexturePro(
             Engine.playerTexture,

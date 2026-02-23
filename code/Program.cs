@@ -22,6 +22,10 @@ static partial class Engine
     public static bool Running { get; private set; } = true;
     static readonly Thread fixedUpdateThread;
 
+    // interpolation
+    public static float InterpT { get; private set; }
+    public static int CurrentInterpTick { get; private set; }
+
     // screen resolution vars
     const int startScreenWidth = 800;
     const int startScreenHeight = 480;
@@ -136,6 +140,8 @@ static partial class Engine
         while (Running)
         {
             Update();
+            CurrentInterpTick = currentTick;
+            InterpT = (float)(stopwatchFixedUpdate.ElapsedMilliseconds - lastTickTimeFixedMSec) * (1f / FixedUpdateIntervalMSec);
             Render();
 
             Running = !WindowShouldClose();

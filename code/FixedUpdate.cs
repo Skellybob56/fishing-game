@@ -21,8 +21,9 @@ static partial class Engine
             long currentTimeFixedMSec;
             long nextTickTimeFixedMSec;
             int remainingTimeFixedMSec;
-            lastTickTimeFixedMSec = stopwatchFixedUpdate.ElapsedMilliseconds;
+
             ++currentTick;
+            lastTickTimeFixedMSec = stopwatchFixedUpdate.ElapsedMilliseconds;
             FixedUpdate();
 
             currentTimeFixedMSec = stopwatchFixedUpdate.ElapsedMilliseconds;
