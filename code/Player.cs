@@ -13,33 +13,56 @@ class Player : Singleton<Player>
 
     const float playerSpeed = 1f;
 
-    Vector2 position;
+    Vector2 fixedPosition;
+    Vector2 sharedPosition;
+    Vector2 sharedOldPosition;
+    Vector2 renderPosition;
+    Vector2 renderOldPosition;
+    Vector2 displacement;
+    bool newFixedData = false;
     readonly Lock sharedDataLock = new();
 
 
     private Player(Vector2 position)
     {
-        this.position = position;
+        fixedPosition = position;
+        sharedPosition = position;
+        renderPosition = position;
+        sharedOldPosition = position;
+        renderOldPosition = position;
     }
 
     public void FixedUpdate()
     {
+        displacement = Controller.WishDir * playerSpeed;
+
+        fixedPosition += displacement;
+
+        // share data
         lock (sharedDataLock)
         {
-            position += Controller.WishDir * playerSpeed;
+            sharedOldPosition = sharedPosition;
+            sharedPosition = fixedPosition;
+            newFixedData = true;
         }
     }
 
     public void Render(Vector2 screenPosition, float graphicalScale)
     {
-        lock (sharedDataLock)
+        if (newFixedData)
         {
-            DrawTexturePro(
-                Engine.playerTexture,
-                new(0, spriteSize.height, (Vector2)spriteSize),
-                new(position * graphicalScale + screenPosition, (Vector2)spriteSize * graphicalScale),
-                Vector2.Zero, 0f, Color.White
-                );
+            lock (sharedDataLock)
+            {
+                renderPosition = sharedPosition;
+                renderOldPosition = sharedOldPosition;
+                newFixedData = false;
+            }
         }
+        DrawTexturePro(
+            Engine.playerTexture,
+            new(0, spriteSize.height, (Vector2)spriteSize),
+            new(renderPosition * graphicalScale + screenPosition, (Vector2)spriteSize * graphicalScale),
+            Vector2.Zero, 0f, Color.White
+            );
     }
 }
