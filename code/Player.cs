@@ -12,9 +12,15 @@ class Player : Singleton<Player>
 
     readonly NaturalSize spriteSize = new(16, 16);
 
+    // consts
     const float movementSpeed = 1f;
     const float rolloverDeadzone = 0.25f; // how close you must be to a pixel grid boundry to shift in the opposite direction of prior 
     const float rolloverSpeed = 0.1f;
+
+    readonly NaturalRectangle collider = new(
+        new Point(6, 12), // offset of top left corner from player positon
+        new NaturalSize(4, 3)
+        );
 
     // fixed
     Vector2 fixedPosition;
