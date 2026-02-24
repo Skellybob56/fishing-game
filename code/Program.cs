@@ -84,8 +84,6 @@ static partial class Engine
         {
             WindowResized();
         }
-
-        controller.Update();
     }
 
     static void RenderToTextures()

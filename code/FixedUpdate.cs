@@ -43,6 +43,7 @@ static partial class Engine
 
     static void FixedUpdate()
     {
+        controller.FixedUpdate();
         player.FixedUpdate();
     }
 }
