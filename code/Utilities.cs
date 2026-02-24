@@ -31,10 +31,10 @@ public static class Utilities
             ((graphicIndex & 0xf0) >> 4) * TileSize.height + (quadrant / 2 * TileSize.height / 2));
     }
 
-    static public float MoveTowards(float current, float target, float maxDelta)
+    static public float MovementTowards(float current, float target, float maxDelta)
     {
         float delta = target - current;
-        if (MathF.Abs(delta) <= maxDelta) { return target; }
-        return current + MathF.Sign(delta) * maxDelta;
+        if (MathF.Abs(delta) <= maxDelta) { return delta; }
+        return MathF.Sign(delta) * maxDelta;
     }
 }

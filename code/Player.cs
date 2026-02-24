@@ -19,7 +19,7 @@ class Player : Singleton<Player>
     // fixed
     Vector2 fixedPosition;
     Vector2 displacement = Vector2.Zero;
-    Vector2 oldDisplacement = Vector2.Zero;
+    Vector2 oldWishDir = Vector2.Zero;
     float? rolloverTargetX;
     float? rolloverTargetY;
 
@@ -46,33 +46,32 @@ class Player : Singleton<Player>
     void Rollover()
     {
         // add or cancel rollover target for x
-        if (displacement.X != 0) { rolloverTargetX = null; }
-        else if (oldDisplacement.X != 0)
+        if (Controller.WishDir.X != 0) { rolloverTargetX = null; }
+        else if (oldWishDir.X != 0)
         {
             float fract = fixedPosition.X - MathF.Truncate(fixedPosition.X);
             rolloverTargetX = (fract <= rolloverDeadzone || fract >= (1f - rolloverDeadzone))
                 ? MathF.Round(fixedPosition.X)
-                : (oldDisplacement.X > 0 ? MathF.Ceiling(fixedPosition.X) : MathF.Floor(fixedPosition.X));
+                : (oldWishDir.X > 0 ? MathF.Ceiling(fixedPosition.X) : MathF.Floor(fixedPosition.X));
         }
         if (fixedPosition.X == rolloverTargetX) { rolloverTargetX = null; }
 
         // add or cancel rollover target for y
-        if (displacement.Y != 0) { rolloverTargetY = null; }
-        else if (oldDisplacement.Y != 0)
+        if (Controller.WishDir.Y != 0) { rolloverTargetY = null; }
+        else if (oldWishDir.Y != 0)
         {
             float fract = fixedPosition.Y - MathF.Truncate(fixedPosition.Y);
             rolloverTargetY = (fract <= rolloverDeadzone || fract >= (1f - rolloverDeadzone))
                 ? MathF.Round(fixedPosition.Y)
-                : (oldDisplacement.Y > 0 ? MathF.Ceiling(fixedPosition.Y) : MathF.Floor(fixedPosition.Y));
+                : (oldWishDir.Y > 0 ? MathF.Ceiling(fixedPosition.Y) : MathF.Floor(fixedPosition.Y));
         }
         if (fixedPosition.Y == rolloverTargetY) { rolloverTargetY = null; }
 
         // apply rollover
-        // todo: important!!! this must use displacement for it's movement to allow it to work with collision but the current code above does not work with this!
         if (rolloverTargetX.HasValue)
-        { fixedPosition.X = Utilities.MoveTowards(fixedPosition.X, rolloverTargetX.Value, rolloverSpeed); }
+        { displacement.X += Utilities.MovementTowards(fixedPosition.X, rolloverTargetX.Value, rolloverSpeed); }
         if (rolloverTargetY.HasValue)
-        { fixedPosition.Y = Utilities.MoveTowards(fixedPosition.Y, rolloverTargetY.Value, rolloverSpeed); }
+        { displacement.Y += Utilities.MovementTowards(fixedPosition.Y, rolloverTargetY.Value, rolloverSpeed); }
     }
 
     public void FixedUpdate()
@@ -85,7 +84,7 @@ class Player : Singleton<Player>
         fixedPosition += displacement;
 
         // old vars
-        oldDisplacement = displacement;
+        oldWishDir = Controller.WishDir;
 
         // share data
         lock (sharedDataLock)
