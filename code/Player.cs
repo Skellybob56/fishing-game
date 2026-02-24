@@ -24,6 +24,7 @@ class Player : Singleton<Player>
 
     // fixed
     Vector2 fixedPosition;
+    Vector2 velocity = Vector2.Zero;
     Vector2 displacement = Vector2.Zero;
     Vector2 oldWishDir = Vector2.Zero;
     float? rolloverTargetX;
@@ -80,14 +81,20 @@ class Player : Singleton<Player>
         { displacement.Y += Utilities.MovementTowards(fixedPosition.Y, rolloverTargetY.Value, rolloverSpeed); }
     }
 
+    void ApplyDisplacement()
+    {
+        fixedPosition += displacement;
+    }
+
     public void FixedUpdate()
     {
-        displacement = Controller.WishDir * movementSpeed;
+        velocity = Controller.WishDir * movementSpeed;
+        displacement = velocity;
 
-        // shift player onto pixel grid when stationary
+        // set displacement to shift player onto pixel grid when stationary
         Rollover();
 
-        fixedPosition += displacement;
+        ApplyDisplacement();
 
         // old vars
         oldWishDir = Controller.WishDir;
