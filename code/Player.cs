@@ -12,13 +12,16 @@ class Player : Singleton<Player>
 
     readonly NaturalSize spriteSize = new(16, 16);
 
-    const float playerSpeed = 1f;
-    const float playerRolloverDeadzone = 0.2f; // how close you must be to a pixel grid boundry to shift in the opposite direction of prior movement
+    const float movementSpeed = 1f;
+    const float rolloverDeadzone = 0.25f; // how close you must be to a pixel grid boundry to shift in the opposite direction of prior 
+    const float rolloverSpeed = 0.1f;
 
     // fixed
     Vector2 fixedPosition;
     Vector2 displacement = Vector2.Zero;
     Vector2 oldDisplacement = Vector2.Zero;
+    float? rolloverTargetX;
+    float? rolloverTargetY;
 
     // shared
     readonly Lock sharedDataLock = new();
@@ -40,26 +43,44 @@ class Player : Singleton<Player>
         renderOldPosition = position;
     }
 
-    public void FixedUpdate()
+    void Rollover()
     {
-        displacement = Controller.WishDir * playerSpeed;
-
-        if (oldDisplacement.X != 0 && displacement.X == 0)
+        // add or cancel rollover target for x
+        if (displacement.X != 0) { rolloverTargetX = null; }
+        else if (oldDisplacement.X != 0)
         {
             float fract = fixedPosition.X - MathF.Truncate(fixedPosition.X);
-            if (fract <= playerRolloverDeadzone || fract >= (1f-playerRolloverDeadzone))
-            { fixedPosition = new(MathF.Round(fixedPosition.X), fixedPosition.Y); }
-            else { fixedPosition = new(oldDisplacement.X > 0 ? MathF.Ceiling(fixedPosition.X) : MathF.Floor(fixedPosition.X), fixedPosition.Y); }
-
+            rolloverTargetX = (fract <= rolloverDeadzone || fract >= (1f - rolloverDeadzone))
+                ? MathF.Round(fixedPosition.X)
+                : (oldDisplacement.X > 0 ? MathF.Ceiling(fixedPosition.X) : MathF.Floor(fixedPosition.X));
         }
-        if (oldDisplacement.Y != 0 && displacement.Y == 0)
+        if (fixedPosition.X == rolloverTargetX) { rolloverTargetX = null; }
+
+        // add or cancel rollover target for y
+        if (displacement.Y != 0) { rolloverTargetY = null; }
+        else if (oldDisplacement.Y != 0)
         {
             float fract = fixedPosition.Y - MathF.Truncate(fixedPosition.Y);
-            if (fract <= playerRolloverDeadzone || fract >= (1f - playerRolloverDeadzone))
-            { fixedPosition = new(fixedPosition.X, MathF.Round(fixedPosition.Y)); }
-            else { fixedPosition = new(fixedPosition.X, oldDisplacement.Y > 0 ? MathF.Ceiling(fixedPosition.Y) : MathF.Floor(fixedPosition.Y)); }
-
+            rolloverTargetY = (fract <= rolloverDeadzone || fract >= (1f - rolloverDeadzone))
+                ? MathF.Round(fixedPosition.Y)
+                : (oldDisplacement.Y > 0 ? MathF.Ceiling(fixedPosition.Y) : MathF.Floor(fixedPosition.Y));
         }
+        if (fixedPosition.Y == rolloverTargetY) { rolloverTargetY = null; }
+
+        // apply rollover
+        // todo: important!!! this must use displacement for it's movement to allow it to work with collision but the current code above does not work with this!
+        if (rolloverTargetX.HasValue)
+        { fixedPosition.X = Utilities.MoveTowards(fixedPosition.X, rolloverTargetX.Value, rolloverSpeed); }
+        if (rolloverTargetY.HasValue)
+        { fixedPosition.Y = Utilities.MoveTowards(fixedPosition.Y, rolloverTargetY.Value, rolloverSpeed); }
+    }
+
+    public void FixedUpdate()
+    {
+        displacement = Controller.WishDir * movementSpeed;
+
+        // shift player onto pixel grid when stationary
+        Rollover();
 
         fixedPosition += displacement;
 

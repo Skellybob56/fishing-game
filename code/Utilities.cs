@@ -30,4 +30,11 @@ public static class Utilities
         return new((graphicIndex & 0x0f) * TileSize.width + (quadrant % 2 * TileSize.width / 2),
             ((graphicIndex & 0xf0) >> 4) * TileSize.height + (quadrant / 2 * TileSize.height / 2));
     }
+
+    static public float MoveTowards(float current, float target, float maxDelta)
+    {
+        float delta = target - current;
+        if (MathF.Abs(delta) <= maxDelta) { return target; }
+        return current + MathF.Sign(delta) * maxDelta;
+    }
 }
