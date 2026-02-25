@@ -43,6 +43,8 @@ public readonly struct Point(int x, int y)
         return new(a.x, a.y);
     }
 
+    public override string ToString()
+    { return $"<{x}, {y}>"; }
 }
 public readonly struct NaturalSize
 {
@@ -76,6 +78,9 @@ public readonly struct NaturalSize
     {
         return new(a.width, a.height);
     }
+
+    public override string ToString()
+    { return $"<{width}, {height}>"; }
 }
 
 readonly struct NaturalRectangle(Point position, NaturalSize size)
@@ -85,8 +90,38 @@ readonly struct NaturalRectangle(Point position, NaturalSize size)
 
     public NaturalRectangle(int x, int y, NaturalSize size) : this(new(x, y), size) { }
 
+    public static NaturalRectangle ExpansiveRound(Rectangle rectangle)
+    {
+        Vector2 minPointVec = rectangle.Position;
+        Vector2 maxPointVec = rectangle.Position + rectangle.Size;
+        float temp;
+
+        // flip rectangle to make size positive
+        if (minPointVec.X > maxPointVec.X)
+        {
+            temp = minPointVec.X;
+            minPointVec.X = maxPointVec.X;
+            maxPointVec.X = temp;
+        }
+        if (minPointVec.Y > maxPointVec.Y)
+        {
+            temp = minPointVec.Y;
+            minPointVec.Y = maxPointVec.Y;
+            maxPointVec.Y = temp;
+        }
+
+        Point position = new((int)MathF.Floor(minPointVec.X), (int)MathF.Floor(minPointVec.Y));
+        Point maxPosition = new((int)MathF.Floor(maxPointVec.X) + 1, (int)MathF.Floor(maxPointVec.Y) + 1);
+        NaturalSize size = new(maxPosition.x - position.x, maxPosition.y - position.y);
+
+        return new(position, size);
+    }
+
     public static explicit operator Rectangle(NaturalRectangle a)
     {
         return new((Vector2)a.position, (Vector2)a.size);
     }
+
+    public override string ToString()
+    { return $"Position: {position}, Size: {size}"; }
 }
