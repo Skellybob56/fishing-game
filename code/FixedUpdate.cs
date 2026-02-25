@@ -15,7 +15,6 @@ static partial class Engine
     {
         stopwatchFixedUpdate.Start();
 
-        Console.WriteLine(Running);
         while (Running)
         {
             long currentTimeFixedMSec;
