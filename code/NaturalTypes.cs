@@ -3,7 +3,7 @@ using System.Numerics;
 
 namespace FishingGame;
 
-public readonly struct Point(int x, int y)
+public readonly record struct Point(int x, int y)
 {
     public readonly int x = x;
     public readonly int y = y;
@@ -46,10 +46,11 @@ public readonly struct Point(int x, int y)
     public override string ToString()
     { return $"<{x}, {y}>"; }
 }
-public readonly struct NaturalSize
+public readonly record struct NaturalSize
 {
     public readonly int width;
     public readonly int height;
+
     public NaturalSize(int width, int height)
     {
         if (width <= 0)
@@ -83,7 +84,7 @@ public readonly struct NaturalSize
     { return $"<{width}, {height}>"; }
 }
 
-readonly struct NaturalRectangle(Point position, NaturalSize size)
+readonly record struct NaturalRectangle(Point position, NaturalSize size)
 {
     public readonly Point position = position;
     public readonly NaturalSize size = size;
