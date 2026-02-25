@@ -62,7 +62,7 @@ static partial class Engine
         playerTexture = LoadTexture("textures/player.png");
 
         controller = Controller.Create();
-        player = Player.Create(new(32, 32));
+        player = Player.Create(new(36, 32));
         world = World.Create();
 
         lowRenderTexture = LoadRenderTexture(internalWidth, internalHeight);
