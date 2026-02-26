@@ -111,7 +111,7 @@ readonly record struct NaturalRectangle(Point position, NaturalSize size)
             maxPointVec.Y = temp;
         }
 
-        Point position = new((int)MathF.Floor(minPointVec.X), (int)MathF.Floor(minPointVec.Y));
+        Point position = new((int)MathF.Ceiling(minPointVec.X) - 1, (int)MathF.Ceiling(minPointVec.Y) - 1);
         Point maxPosition = new((int)MathF.Floor(maxPointVec.X) + 1, (int)MathF.Floor(maxPointVec.Y) + 1);
         NaturalSize size = new(maxPosition.x - position.x, maxPosition.y - position.y);
 
