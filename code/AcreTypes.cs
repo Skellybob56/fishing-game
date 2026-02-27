@@ -1,6 +1,6 @@
 ﻿namespace FishingGame;
 
-enum TileHeight : byte
+public enum TileHeight : byte
 {
     DeepWater,
     Water,
@@ -9,7 +9,7 @@ enum TileHeight : byte
     Hill,
     TallHill
 }
-enum Collision : byte
+public enum Collision : byte
 {
     Wet,
     Walkable,

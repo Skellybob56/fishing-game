@@ -70,6 +70,11 @@ public class World : Singleton<World>
         );
     }
 
+    public Collision PosToCollision(int x, int y)
+    {
+        return acre.PosToCollision(x, y);
+    }
+
     static void RenderQuadrant(byte graphicIndex, int x, int y, int quadrant)
     {
         int quad_offset_x = (quadrant & 1) * 4;

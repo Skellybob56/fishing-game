@@ -41,17 +41,6 @@ static partial class Engine
     static bool screenHeightLimited;
     static float graphicalScale;
 
-    static void WindowResized()
-    {
-        screenWidth = GetScreenWidth();
-        screenHeight = GetScreenHeight();
-        screenRatio = (float)screenWidth / (float)screenHeight;
-        screenHeightLimited = screenRatio > internalRatio;
-        graphicalScale = screenHeightLimited ?
-            screenHeight / (float)internalHeight :
-            screenWidth / (float)internalWidth;
-    }
-
     static Engine()
     {
         SetConfigFlags(ConfigFlags.ResizableWindow | ConfigFlags.VSyncHint);
@@ -72,6 +61,20 @@ static partial class Engine
 
         fixedUpdateThread = new Thread(FixedUpdateLoop);
         fixedUpdateThread.Start();
+    }
+
+    public static Collision PointToCollision(int x, int y)
+    { return world.PosToCollision(x, y); }
+
+    static void WindowResized()
+    {
+        screenWidth = GetScreenWidth();
+        screenHeight = GetScreenHeight();
+        screenRatio = (float)screenWidth / (float)screenHeight;
+        screenHeightLimited = screenRatio > internalRatio;
+        graphicalScale = screenHeightLimited ?
+            screenHeight / (float)internalHeight :
+            screenWidth / (float)internalWidth;
     }
 
     static void Update()

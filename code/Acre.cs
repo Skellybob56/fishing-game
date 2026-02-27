@@ -25,6 +25,13 @@ readonly struct Acre
         return (pos.x / TileSize.width) + ((pos.y / TileSize.height) * World.acreSize.width);
     }
 
+    public Collision PosToCollision(int x, int y)
+    {
+        if (x < 0 || x >= World.acreSize.width || y < 0 || y >= World.acreSize.height)
+        { return Collision.Hilly; } // collsion out of bounds is hilly
+        return collisionMap[PosToIndex(x, y)];
+    }
+
     static Collision HeightToCollision(TileHeight height)
     {
         return (height <= TileHeight.Water ? Collision.Wet : 
