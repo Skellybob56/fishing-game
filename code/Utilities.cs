@@ -1,4 +1,5 @@
 ﻿using Raylib_cs;
+using System.Numerics;
 
 namespace FishingGame;
 
@@ -36,5 +37,22 @@ public static class Utilities
         float delta = target - current;
         if (MathF.Abs(delta) <= maxDelta) { return delta; }
         return MathF.Sign(delta) * maxDelta;
+    }
+
+    static public Rectangle GrowRectangle(this Rectangle rect, Vector2 directionalGrowth)
+    {
+        Rectangle output = rect;
+
+        if (directionalGrowth.X > 0)
+        { output.Width += directionalGrowth.X; }
+        else if (directionalGrowth.X < 0)
+        { output.X += directionalGrowth.X; output.Width -= directionalGrowth.X; }
+
+        if (directionalGrowth.Y > 0)
+        { output.Height += directionalGrowth.Y; }
+        else if (directionalGrowth.Y < 0)
+        { output.Y += directionalGrowth.Y; output.Height -= directionalGrowth.Y; }
+
+        return output;
     }
 }
