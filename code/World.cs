@@ -38,19 +38,19 @@ public class World : Singleton<World>
         TileHeight[] heightmap = Array.ConvertAll(byte_heightmap, b => (TileHeight)b);
         List<Prop> lowProps = [
             new(new(12, 1), BridgeBaseTextureIndex + 0),
-            new(new(12, 2), BridgeBaseTextureIndex + 2, Collision.Walkable),
-            new(new(12, 3), BridgeBaseTextureIndex + 7, Collision.Walkable),
+            new(new(12, 2), BridgeBaseTextureIndex + 2, CollisionType.Walkable),
+            new(new(12, 3), BridgeBaseTextureIndex + 7, CollisionType.Walkable),
             new(new(12, 4), BridgeBaseTextureIndex + 8),
 
-            new(new(5, 6), RockBaseTextureIndex + 0, Collision.Walkable),
-            new(new(6, 6), RockBaseTextureIndex + 1, Collision.Walkable),
-            new(new(7, 6), RockBaseTextureIndex + 2, Collision.Walkable),
-            new(new(8, 6), RockBaseTextureIndex + 3, Collision.Walkable),
-            new(new(9, 6), RockBaseTextureIndex + 4, Collision.Walkable),
+            new(new(5, 6), RockBaseTextureIndex + 0, CollisionType.Walkable),
+            new(new(6, 6), RockBaseTextureIndex + 1, CollisionType.Walkable),
+            new(new(7, 6), RockBaseTextureIndex + 2, CollisionType.Walkable),
+            new(new(8, 6), RockBaseTextureIndex + 3, CollisionType.Walkable),
+            new(new(9, 6), RockBaseTextureIndex + 4, CollisionType.Walkable),
 
-            new(new(14, 13), RockBaseTextureIndex + 5, Collision.Walkable),
-            new(new(15, 13), RockBaseTextureIndex + 6, Collision.Walkable, true),
-            new(new(16, 13), RockBaseTextureIndex + 7, Collision.Walkable, true),
+            new(new(14, 13), RockBaseTextureIndex + 5, CollisionType.Walkable),
+            new(new(15, 13), RockBaseTextureIndex + 6, CollisionType.Walkable, true),
+            new(new(16, 13), RockBaseTextureIndex + 7, CollisionType.Walkable, true),
 
             new(new(20, 3), FlowerBaseTextureIndex + 0),
             new(new(21, 3), FlowerBaseTextureIndex + 1),
@@ -70,7 +70,7 @@ public class World : Singleton<World>
         );
     }
 
-    public Collision PosToCollision(int x, int y)
+    public CollisionType PosToCollision(int x, int y)
     {
         return acre.PosToCollision(x, y);
     }

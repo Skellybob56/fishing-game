@@ -63,7 +63,7 @@ static partial class Engine
         fixedUpdateThread.Start();
     }
 
-    public static Collision PointToCollision(int x, int y)
+    public static CollisionType PointToCollision(int x, int y)
     { return world.PosToCollision(x, y); }
 
     static void WindowResized()

@@ -6,15 +6,15 @@ using static FishingGame.Utilities;
 namespace FishingGame;
 
 
-readonly struct Prop(Point location, NaturalRectangle graphicSource, Collision? collision = null, bool flippedX = false, float rotation = 0)
+readonly struct Prop(Point location, NaturalRectangle graphicSource, CollisionType? collision = null, bool flippedX = false, float rotation = 0)
 { 
     public readonly Point location = location; // location in pixel space
     readonly NaturalRectangle graphicSource = graphicSource;
-    public readonly Collision? collision = collision;
+    public readonly CollisionType? collision = collision;
     readonly bool flippedX = flippedX;
     readonly float rotation = rotation;
 
-    public Prop(Point position, byte graphicIndex, Collision? collision = null, bool flippedX = false, float rotation = 0) :
+    public Prop(Point position, byte graphicIndex, CollisionType? collision = null, bool flippedX = false, float rotation = 0) :
         this(position * TileSize, new NaturalRectangle(GraphicIndexToPoint(graphicIndex), TileSize), collision, flippedX, rotation)
     { }
 

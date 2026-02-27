@@ -9,7 +9,7 @@ public enum TileHeight : byte
     Hill,
     TallHill
 }
-public enum Collision : byte
+public enum CollisionType : byte
 {
     Wet,
     Walkable,

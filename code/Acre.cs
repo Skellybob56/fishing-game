@@ -6,7 +6,7 @@ readonly struct Acre
 {
 
     public readonly Point position;
-    public readonly Collision[] collisionMap;
+    public readonly CollisionType[] collisionMap;
     public readonly TileGraphicIndices[] tilemap;
     public readonly Prop[] lowProps;
     public readonly Prop[] highProps;
@@ -25,31 +25,31 @@ readonly struct Acre
         return (pos.x / TileSize.width) + ((pos.y / TileSize.height) * World.acreSize.width);
     }
 
-    public Collision PosToCollision(int x, int y)
+    public CollisionType PosToCollision(int x, int y)
     {
         if (x < 0 || x >= World.acreSize.width || y < 0 || y >= World.acreSize.height)
-        { return Collision.Hilly; } // collsion out of bounds is hilly
+        { return CollisionType.Hilly; } // collsion out of bounds is hilly
         return collisionMap[PosToIndex(x, y)];
     }
 
-    static Collision HeightToCollision(TileHeight height)
+    static CollisionType HeightToCollision(TileHeight height)
     {
-        return (height <= TileHeight.Water ? Collision.Wet : 
-            (height < TileHeight.Hill ? Collision.Walkable : Collision.Hilly));
+        return (height <= TileHeight.Water ? CollisionType.Wet : 
+            (height < TileHeight.Hill ? CollisionType.Walkable : CollisionType.Hilly));
     }
 
-    static void ApplyPropsToCollisionMap(ref Collision[] collisionMap, Prop[] props)
+    static void ApplyPropsToCollisionMap(ref CollisionType[] collisionMap, Prop[] props)
     {
         foreach (Prop prop in props)
         {
             if (prop.collision == null) { continue; }
-            collisionMap[PixelPosToIndex(prop.location)] = (Collision)prop.collision;
+            collisionMap[PixelPosToIndex(prop.location)] = (CollisionType)prop.collision;
         }
     }
 
-    static Collision[] HeightmapToCollisionMap(TileHeight[] heightmap, Prop[] lowProps, Prop[] highProps)
+    static CollisionType[] HeightmapToCollisionMap(TileHeight[] heightmap, Prop[] lowProps, Prop[] highProps)
     {
-        Collision[] collisionMap = new Collision[World.acreSize.width * World.acreSize.height];
+        CollisionType[] collisionMap = new CollisionType[World.acreSize.width * World.acreSize.height];
 
         // col and row are in heightmap space
         for (int row = 1; row < World.acreSize.height + 1; row++)
