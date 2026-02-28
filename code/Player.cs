@@ -1,7 +1,6 @@
 ﻿using Raylib_cs;
 using static Raylib_cs.Raylib;
 using System.Numerics;
-using System.Diagnostics;
 
 namespace FishingGame;
 
@@ -18,17 +17,25 @@ class Player : Singleton<Player>
     const float rolloverSpeed = 0.1f;
 
     readonly NaturalRectangle collider = new(
-        new Point(6, 12), // offset of top left corner from player positon
-        new NaturalSize(4, 3)
+        new Point(6, 13), // offset of top left corner from player positon
+        new NaturalSize(4, 2)
         );
 
     // fixed
     Vector2 fixedPosition;
     Vector2 velocity = Vector2.Zero;
     Vector2 displacement = Vector2.Zero;
+    float remainingTime;
+    float subtickTimeLength;
+    Vector2 subtickDisplacement;
+    IntersectionData? closestIntersectionData;
     Vector2 oldWishDir = Vector2.Zero;
     float? rolloverTargetX;
     float? rolloverTargetY;
+
+    Rectangle currentCollider;
+    NaturalRectangle currentCollidingTiles;
+    NaturalRectangle potentialCollidingTiles;
 
     // shared
     readonly Lock sharedDataLock = new();
@@ -83,7 +90,64 @@ class Player : Singleton<Player>
 
     void ApplyDisplacement()
     {
-        fixedPosition += displacement;
+        if (displacement == Vector2.Zero) { return; }
+
+        remainingTime = 1f;
+        subtickDisplacement = displacement;
+
+        while (remainingTime > 0f) // while there is still time in the tick
+        {
+            subtickTimeLength = remainingTime;
+
+            // measure the tiles the player is colliding with excluding the displacement
+            currentCollider = new(
+                (fixedPosition + (Vector2)collider.position) / (Vector2)Utilities.TileSize,
+                ((Vector2)collider.size) / (Vector2)Utilities.TileSize
+                );
+            currentCollidingTiles = NaturalRectangle.ExpansiveRound(currentCollider);
+
+            // measure the tiles the player is colliding with including the displacement
+            potentialCollidingTiles = NaturalRectangle.ExpansiveRound(
+                currentCollider.GrowRectangle(subtickDisplacement)
+                );
+
+            // if the potentialCollidingTiles set is equal to the currentCollidingTiles set then just add displacement and return
+            if (currentCollidingTiles == potentialCollidingTiles)
+            { fixedPosition += subtickDisplacement; return; }
+
+            closestIntersectionData = null;
+            // iterate on each potentialCollidingTile
+            for (int tileX = potentialCollidingTiles.position.x; tileX < potentialCollidingTiles.size.width + potentialCollidingTiles.position.x; tileX++)
+            {
+                for (int tileY = potentialCollidingTiles.position.y; tileY < potentialCollidingTiles.size.height + potentialCollidingTiles.position.y; tileY++)
+                {
+                    // if tile is walkable then continue
+                    if (Engine.PointToCollision(tileX, tileY) == CollisionType.Walkable) { continue; }
+
+                    // get collision data
+                    IntersectionData? intersectionData = CollisionUtil.SweepBoxAgainstBox(currentCollider, subtickDisplacement, new(tileX, tileY, 1, 1));
+                    
+                    if (intersectionData != null) // if there is a collision
+                    {
+                        // set subtick displacement to bring the player just up to the tile
+                        subtickDisplacement = intersectionData.Value.intersectionPoint - currentCollider.Position;
+                        subtickTimeLength *= intersectionData.Value.timeTillCollision;
+                        closestIntersectionData = intersectionData.Value; // store intersection data
+                    }
+                }
+            }
+            if (!closestIntersectionData.HasValue) // no intersection
+            { fixedPosition += subtickDisplacement; return; }
+            // reduce time by subtickTimeLength
+            remainingTime -= subtickTimeLength;
+            // apply normals
+            displacement = displacement.ApplyNormal(closestIntersectionData.Value.collisionNormal);
+            velocity = velocity.ApplyNormal(closestIntersectionData.Value.collisionNormal);
+            // add subtick displacement to location
+            fixedPosition += subtickDisplacement;
+            // use the initial displacement to produce new displacement
+            subtickDisplacement = displacement * remainingTime;
+        }
     }
 
     public void FixedUpdate()
