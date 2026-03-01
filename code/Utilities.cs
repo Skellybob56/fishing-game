@@ -44,6 +44,11 @@ public static class Utilities
         return current + MovementTowards(current, target, maxDelta);
     }
 
+    static public Vector2 MoveTowards(Vector2 current, Vector2 target, float maxDelta)
+    {
+        return new(MoveTowards(current.X, target.X, maxDelta), MoveTowards(current.Y, target.Y, maxDelta));
+    }
+
     static public Rectangle GrowRectangle(this Rectangle rect, Vector2 directionalGrowth)
     {
         Rectangle output = rect;
