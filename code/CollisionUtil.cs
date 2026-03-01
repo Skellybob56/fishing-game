@@ -76,7 +76,7 @@ public static class CollisionUtil
         { return null; }
 
         // collision occurs beyond the bounds of the displacement vector
-        if (tMinimum > 1) { return null; }
+        if (tMinimum >= 1) { return null; }
 
         if (collisionNormal.HasValue)
         {
