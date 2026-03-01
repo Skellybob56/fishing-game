@@ -38,7 +38,7 @@ public readonly record struct Point(int x, int y)
         return new(a.x * b.width, a.y * b.height);
     }
 
-    public static explicit operator Vector2(Point a)
+    public static implicit operator Vector2(Point a)
     {
         return new(a.x, a.y);
     }
@@ -71,7 +71,7 @@ public readonly record struct NaturalSize
         return new(a.width / b, a.height / b);
     }
 
-    public static explicit operator Vector2(NaturalSize a)
+    public static implicit operator Vector2(NaturalSize a)
     {
         return new(a.width, a.height);
     }
