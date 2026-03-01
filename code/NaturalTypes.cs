@@ -91,7 +91,7 @@ readonly record struct NaturalRectangle(Point position, NaturalSize size)
 
     public NaturalRectangle(int x, int y, NaturalSize size) : this(new(x, y), size) { }
 
-    public static NaturalRectangle ExpansiveRound(Rectangle rectangle)
+    public static NaturalRectangle ExpansiveRound(Rectangle rectangle, bool closedIntervals = true)
     {
         Vector2 minPointVec = rectangle.Position;
         Vector2 maxPointVec = rectangle.Position + rectangle.Size;
@@ -111,11 +111,23 @@ readonly record struct NaturalRectangle(Point position, NaturalSize size)
             maxPointVec.Y = temp;
         }
 
-        Point position = new((int)MathF.Ceiling(minPointVec.X) - 1, (int)MathF.Ceiling(minPointVec.Y) - 1);
-        Point maxPosition = new((int)MathF.Floor(maxPointVec.X) + 1, (int)MathF.Floor(maxPointVec.Y) + 1);
-        NaturalSize size = new(maxPosition.x - position.x, maxPosition.y - position.y);
+        if (closedIntervals)
+        {
+            Point position = new((int)MathF.Ceiling(minPointVec.X) - 1, (int)MathF.Ceiling(minPointVec.Y) - 1);
+            Point maxPosition = new((int)MathF.Floor(maxPointVec.X) + 1, (int)MathF.Floor(maxPointVec.Y) + 1);
+            NaturalSize size = new(maxPosition.x - position.x, maxPosition.y - position.y);
 
-        return new(position, size);
+            return new(position, size);
+        }
+        else
+        {
+            Point position = new((int)MathF.Floor(minPointVec.X), (int)MathF.Floor(minPointVec.Y));
+            Point maxPosition = new((int)MathF.Ceiling(maxPointVec.X), (int)MathF.Ceiling(maxPointVec.Y));
+            NaturalSize size = new(maxPosition.x - position.x, maxPosition.y - position.y);
+
+            return new(position, size);
+        }
+
     }
 
     public static explicit operator Rectangle(NaturalRectangle a)
