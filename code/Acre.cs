@@ -28,7 +28,7 @@ readonly struct Acre
     public CollisionType PosToCollision(int x, int y)
     {
         if (x < 0 || x >= World.acreSize.width || y < 0 || y >= World.acreSize.height)
-        { return CollisionType.Hilly; } // collsion out of bounds is hilly
+        { return CollisionType.Walkable; } // collsion out of bounds is walkable
         return collisionMap[PosToIndex(x, y)];
     }
 
