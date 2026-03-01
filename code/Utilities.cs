@@ -39,6 +39,11 @@ public static class Utilities
         return MathF.Sign(delta) * maxDelta;
     }
 
+    static public float MoveTowards(float current, float target, float maxDelta)
+    {
+        return current + MovementTowards(current, target, maxDelta);
+    }
+
     static public Rectangle GrowRectangle(this Rectangle rect, Vector2 directionalGrowth)
     {
         Rectangle output = rect;
