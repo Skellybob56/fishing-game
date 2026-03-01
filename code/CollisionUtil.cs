@@ -8,6 +8,7 @@ public enum CollisionNormal : byte
 
 public readonly struct IntersectionData(float timeTillCollision, Vector2 intersectionPoint, CollisionNormal collisionNormal)
 {
+    // timeTillCollision is measured assuming that the displacement takes 1 unit of time
     public readonly float timeTillCollision = timeTillCollision;
     public readonly Vector2 intersectionPoint = intersectionPoint;
     public readonly CollisionNormal collisionNormal = collisionNormal;
