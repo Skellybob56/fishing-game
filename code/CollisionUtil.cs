@@ -6,7 +6,7 @@ namespace FishingGame;
 public enum CollisionNormal : byte
 { Up, Down, Left, Right }
 
-public readonly struct IntersectionData(float timeTillCollision, float tEdge, Vector2 intersectionPoint, CollisionNormal collisionNormal)
+public readonly struct AABBHit(float timeTillCollision, float tEdge, Vector2 intersectionPoint, CollisionNormal collisionNormal)
 {
     // timeTillCollision is measured assuming that the displacement takes 1 unit of time
     public readonly float timeTillCollision = timeTillCollision;
@@ -17,14 +17,14 @@ public readonly struct IntersectionData(float timeTillCollision, float tEdge, Ve
 
 public static class CollisionUtil
 {
-    public static IntersectionData? SweepBoxAgainstBox(Rectangle dynamicBox, Vector2 displacement, Rectangle staticBox)
+    public static AABBHit? SweepBoxAgainstBox(Rectangle dynamicBox, Vector2 displacement, Rectangle staticBox)
     {
         return LineBoxIntersection(dynamicBox.Position, displacement,
             new(staticBox.Position - dynamicBox.Size, staticBox.Size + dynamicBox.Size));
     }
 
     // if the point is inside the box, collisions are not counted
-    static IntersectionData? LineBoxIntersection(Vector2 point, Vector2 displacement, Rectangle box)
+    static AABBHit? LineBoxIntersection(Vector2 point, Vector2 displacement, Rectangle box)
     {
         float tMinimum = 0f;
         CollisionNormal? collisionNormal = null;

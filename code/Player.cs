@@ -32,7 +32,7 @@ class Player : Singleton<Player>
     float remainingTime;
     float subtickTimeLength;
     Vector2 subtickDisplacement;
-    IntersectionData? closestIntersectionData;
+    AABBHit? closestAABBHit;
     Vector2 oldVelocity = Vector2.Zero;
     float? rolloverTargetX;
     float? rolloverTargetY;
@@ -122,7 +122,7 @@ class Player : Singleton<Player>
             if (currentCollidingTiles == potentialCollidingTiles)
             { fixedPosition += subtickDisplacement; return; }
 
-            closestIntersectionData = null;
+            closestAABBHit = null;
             // iterate on each potentialCollidingTile
             for (int tileX = potentialCollidingTiles.position.x; tileX < potentialCollidingTiles.size.width + potentialCollidingTiles.position.x; tileX++)
             {
@@ -132,29 +132,29 @@ class Player : Singleton<Player>
                     if (Engine.PointToCollision(tileX, tileY) == CollisionType.Walkable) { continue; }
 
                     // get collision data
-                    IntersectionData? intersectionData = CollisionUtil.SweepBoxAgainstBox(currentCollider, 
+                    AABBHit? aabbHit = CollisionUtil.SweepBoxAgainstBox(currentCollider, 
                         subtickDisplacement / Utilities.TileSize, new(tileX, tileY, 1, 1));
                     
-                    if (intersectionData != null) // if there is a collision
+                    if (aabbHit != null) // if there is a collision
                     {
                         // set subtick displacement to bring the player just up to the tile
-                        subtickDisplacement = (intersectionData.Value.intersectionPoint - currentCollider.Position) * Utilities.TileSize;
-                        subtickTimeLength *= intersectionData.Value.timeTillCollision;
-                        closestIntersectionData = intersectionData.Value; // store intersection data
+                        subtickDisplacement = (aabbHit.Value.intersectionPoint - currentCollider.Position) * Utilities.TileSize;
+                        subtickTimeLength *= aabbHit.Value.timeTillCollision;
+                        closestAABBHit = aabbHit.Value; // store intersection data
                     }
                 }
             }
-            if (!closestIntersectionData.HasValue) // no intersection
+            if (!closestAABBHit.HasValue) // no intersection
             { fixedPosition += subtickDisplacement; return; }
             // reduce time by subtickTimeLength
             remainingTime -= subtickTimeLength;
             // apply normal to displacement
-            displacement = displacement.ApplyNormal(closestIntersectionData.Value.collisionNormal);
+            displacement = displacement.ApplyNormal(closestAABBHit.Value.collisionNormal);
             // apply normal partially to velocity
             // todo: make the collision nudge the player around the corner if they collide near the corner of the staic box
-            velocity = Utilities.MoveTowards(velocity, velocity.ApplyNormal(closestIntersectionData.Value.collisionNormal), collisionVelocityCost);
+            velocity = Utilities.MoveTowards(velocity, velocity.ApplyNormal(closestAABBHit.Value.collisionNormal), collisionVelocityCost);
             // add subtick displacement to location
-            fixedPosition = closestIntersectionData.Value.intersectionPoint * Utilities.TileSize - collider.position;
+            fixedPosition = closestAABBHit.Value.intersectionPoint * Utilities.TileSize - collider.position;
             // use the initial displacement to produce new displacement
             subtickDisplacement = displacement * remainingTime;
         }
