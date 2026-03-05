@@ -12,7 +12,9 @@ class Player : Singleton<Player>
     readonly NaturalSize spriteSize = new(16, 16);
 
     // consts
-    const float movementSpeed = 1f;
+    const float topSpeed = 1f;
+    const float acceleration = 0.1f;
+    const float deceleration = 0.2f;
     const float rolloverDeadzone = 0.25f; // how close you must be to a pixel grid boundry to shift in the opposite direction of prior 
     const float rolloverSpeed = 0.1f;
 
@@ -24,7 +26,8 @@ class Player : Singleton<Player>
     // fixed
     Vector2 fixedPosition;
     Vector2 velocity = Vector2.Zero;
-    Vector2 displacement = Vector2.Zero;
+    Vector2 wishVelocity;
+    Vector2 displacement;
     float remainingTime;
     float subtickTimeLength;
     Vector2 subtickDisplacement;
@@ -153,7 +156,18 @@ class Player : Singleton<Player>
 
     public void FixedUpdate()
     {
-        velocity = Controller.WishDir * movementSpeed;
+        wishVelocity = Controller.WishDir * topSpeed;
+        // todo: make deceleration faster when the player actively is opposing the current velocity than when they are just slowing down
+        if (Vector2.Dot(velocity, wishVelocity) < 0 || wishVelocity.LengthSquared() < velocity.LengthSquared())
+        {
+            // reducing in speed
+            velocity = Utilities.MoveTowards(velocity, wishVelocity, deceleration);
+        }
+        else 
+        {
+            velocity = Utilities.MoveTowards(velocity, wishVelocity, acceleration); 
+        }
+        
         displacement = velocity;
 
         // set displacement to shift player onto pixel grid when stationary
