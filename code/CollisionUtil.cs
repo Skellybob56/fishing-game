@@ -6,10 +6,11 @@ namespace FishingGame;
 public enum CollisionNormal : byte
 { Up, Down, Left, Right }
 
-public readonly struct IntersectionData(float timeTillCollision, Vector2 intersectionPoint, CollisionNormal collisionNormal)
+public readonly struct IntersectionData(float timeTillCollision, float tEdge, Vector2 intersectionPoint, CollisionNormal collisionNormal)
 {
     // timeTillCollision is measured assuming that the displacement takes 1 unit of time
     public readonly float timeTillCollision = timeTillCollision;
+    public readonly float tEdge = tEdge; // the t value of the intersection on the hit edge from negative towards positive
     public readonly Vector2 intersectionPoint = intersectionPoint;
     public readonly CollisionNormal collisionNormal = collisionNormal;
 }
@@ -81,16 +82,20 @@ public static class CollisionUtil
         if (collisionNormal.HasValue)
         {
             Vector2 intersectionPoint = point + displacement * tMinimum;
-            if (collisionNormal.Value == CollisionNormal.Up)
-            { intersectionPoint.Y = boxMin.Y; }
-            else if (collisionNormal.Value == CollisionNormal.Down)
-            { intersectionPoint.Y = boxMax.Y; }
-            else if(collisionNormal.Value == CollisionNormal.Left)
-            { intersectionPoint.X = boxMin.X; }
-            else if(collisionNormal.Value == CollisionNormal.Right)
-            { intersectionPoint.X = boxMax.X; }
+            float tEdge;
+            if (collisionNormal.Value == CollisionNormal.Up || collisionNormal.Value == CollisionNormal.Down)
+            {
+                intersectionPoint.Y = collisionNormal.Value == CollisionNormal.Up ? boxMin.Y : boxMax.Y;
+                tEdge = (intersectionPoint.X - boxMin.X) / box.Width;
+            }
+            else if (collisionNormal.Value == CollisionNormal.Left || collisionNormal.Value == CollisionNormal.Right)
+            {
+                intersectionPoint.X = collisionNormal.Value == CollisionNormal.Left ? boxMin.X : boxMax.X;
+                tEdge = (intersectionPoint.Y - boxMin.Y) / box.Height;
+            }
+            else { throw new ArgumentOutOfRangeException(nameof(collisionNormal), "CollisionNormal variables must be Up, Down, Left or Right"); }
 
-            return new(tMinimum, intersectionPoint, collisionNormal.Value);
+            return new(tMinimum, tEdge, intersectionPoint, collisionNormal.Value);
         }
 
         return null;
