@@ -17,6 +17,7 @@ class Player : Singleton<Player>
     const float deceleration = 0.2f;
     const float rolloverDeadzone = 0.25f; // how close you must be to a pixel grid boundry to shift in the opposite direction of prior 
     const float rolloverSpeed = 0.1f;
+    const float collisionVelocityCost = 0.2f;
 
     readonly NaturalRectangle collider = new(
         new Point(6, 13), // offset of top left corner from player positon
@@ -147,9 +148,11 @@ class Player : Singleton<Player>
             { fixedPosition += subtickDisplacement; return; }
             // reduce time by subtickTimeLength
             remainingTime -= subtickTimeLength;
-            // apply normals
+            // apply normal to displacement
             displacement = displacement.ApplyNormal(closestIntersectionData.Value.collisionNormal);
-            velocity = velocity.ApplyNormal(closestIntersectionData.Value.collisionNormal);
+            // apply normal partially to velocity
+            // todo: make the collision nudge the player around the corner if they collide near the corner of the staic box
+            velocity = Utilities.MoveTowards(velocity, velocity.ApplyNormal(closestIntersectionData.Value.collisionNormal), collisionVelocityCost);
             // add subtick displacement to location
             fixedPosition = closestIntersectionData.Value.intersectionPoint * Utilities.TileSize - collider.position;
             // use the initial displacement to produce new displacement
