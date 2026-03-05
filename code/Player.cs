@@ -104,7 +104,7 @@ class Player : Singleton<Player>
                 (fixedPosition + (Vector2)collider.position) / (Vector2)Utilities.TileSize,
                 ((Vector2)collider.size) / (Vector2)Utilities.TileSize
                 );
-            currentCollidingTiles = NaturalRectangle.ExpansiveRound(currentCollider);
+            currentCollidingTiles = NaturalRectangle.ExpansiveRound(currentCollider, false); // use open intervals as the player is not on tiles they are touching
 
             // measure the tiles the player is colliding with including the displacement
             potentialCollidingTiles = NaturalRectangle.ExpansiveRound(
