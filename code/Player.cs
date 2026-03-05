@@ -108,7 +108,7 @@ class Player : Singleton<Player>
 
             // measure the tiles the player is colliding with including the displacement
             potentialCollidingTiles = NaturalRectangle.ExpansiveRound(
-                currentCollider.GrowRectangle(subtickDisplacement)
+                currentCollider.GrowRectangle(subtickDisplacement / Utilities.TileSize)
                 );
 
             // if the potentialCollidingTiles set is equal to the currentCollidingTiles set then just add displacement and return
@@ -125,12 +125,13 @@ class Player : Singleton<Player>
                     if (Engine.PointToCollision(tileX, tileY) == CollisionType.Walkable) { continue; }
 
                     // get collision data
-                    IntersectionData? intersectionData = CollisionUtil.SweepBoxAgainstBox(currentCollider, subtickDisplacement, new(tileX, tileY, 1, 1));
+                    IntersectionData? intersectionData = CollisionUtil.SweepBoxAgainstBox(currentCollider, 
+                        subtickDisplacement / Utilities.TileSize, new(tileX, tileY, 1, 1));
                     
                     if (intersectionData != null) // if there is a collision
                     {
                         // set subtick displacement to bring the player just up to the tile
-                        subtickDisplacement = intersectionData.Value.intersectionPoint - currentCollider.Position;
+                        subtickDisplacement = (intersectionData.Value.intersectionPoint - currentCollider.Position) * Utilities.TileSize;
                         subtickTimeLength *= intersectionData.Value.timeTillCollision;
                         closestIntersectionData = intersectionData.Value; // store intersection data
                     }
@@ -144,7 +145,7 @@ class Player : Singleton<Player>
             displacement = displacement.ApplyNormal(closestIntersectionData.Value.collisionNormal);
             velocity = velocity.ApplyNormal(closestIntersectionData.Value.collisionNormal);
             // add subtick displacement to location
-            fixedPosition += subtickDisplacement;
+            fixedPosition = closestIntersectionData.Value.intersectionPoint * Utilities.TileSize - collider.position;
             // use the initial displacement to produce new displacement
             subtickDisplacement = displacement * remainingTime;
         }
