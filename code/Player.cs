@@ -32,7 +32,7 @@ class Player : Singleton<Player>
     float subtickTimeLength;
     Vector2 subtickDisplacement;
     IntersectionData? closestIntersectionData;
-    Vector2 oldWishDir = Vector2.Zero;
+    Vector2 oldVelocity = Vector2.Zero;
     float? rolloverTargetX;
     float? rolloverTargetY;
 
@@ -62,25 +62,28 @@ class Player : Singleton<Player>
 
     void Rollover()
     {
+        // todo: make rollover start applying when the player stops actively moving in that axis.
+        // cont.: apply rollover gently to account for predicted player location if the player does not apply any movement on that axis
+
         // add or cancel rollover target for x
-        if (Controller.WishDir.X != 0) { rolloverTargetX = null; }
-        else if (oldWishDir.X != 0)
+        if (velocity.X != 0) { rolloverTargetX = null; }
+        else if (oldVelocity.X != 0)
         {
             float fract = fixedPosition.X - MathF.Truncate(fixedPosition.X);
             rolloverTargetX = (fract <= rolloverDeadzone || fract >= (1f - rolloverDeadzone))
                 ? MathF.Round(fixedPosition.X)
-                : (oldWishDir.X > 0 ? MathF.Ceiling(fixedPosition.X) : MathF.Floor(fixedPosition.X));
+                : (oldVelocity.X > 0 ? MathF.Ceiling(fixedPosition.X) : MathF.Floor(fixedPosition.X));
         }
         if (fixedPosition.X == rolloverTargetX) { rolloverTargetX = null; }
 
         // add or cancel rollover target for y
-        if (Controller.WishDir.Y != 0) { rolloverTargetY = null; }
-        else if (oldWishDir.Y != 0)
+        if (velocity.Y != 0) { rolloverTargetY = null; }
+        else if (oldVelocity.Y != 0)
         {
             float fract = fixedPosition.Y - MathF.Truncate(fixedPosition.Y);
             rolloverTargetY = (fract <= rolloverDeadzone || fract >= (1f - rolloverDeadzone))
                 ? MathF.Round(fixedPosition.Y)
-                : (oldWishDir.Y > 0 ? MathF.Ceiling(fixedPosition.Y) : MathF.Floor(fixedPosition.Y));
+                : (oldVelocity.Y > 0 ? MathF.Ceiling(fixedPosition.Y) : MathF.Floor(fixedPosition.Y));
         }
         if (fixedPosition.Y == rolloverTargetY) { rolloverTargetY = null; }
 
@@ -176,7 +179,7 @@ class Player : Singleton<Player>
         ApplyDisplacement();
 
         // old vars
-        oldWishDir = Controller.WishDir;
+        oldVelocity = velocity;
 
         // share data
         lock (sharedDataLock)
