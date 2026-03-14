@@ -70,9 +70,9 @@ public class World : Singleton<World>
         );
     }
 
-    public CollisionType PosToCollision(int x, int y)
+    public CollisionType PointToCollision(int x, int y)
     {
-        return acre.PosToCollision(x, y);
+        return acre.PointToCollision(x, y);
     }
 
     static void RenderQuadrant(byte graphicIndex, int x, int y, int quadrant)

@@ -12,24 +12,24 @@ readonly struct Acre
     public readonly Prop[] highProps;
 
     // tile position to index into stored maps
-    static int PosToIndex(int x, int y)
+    static int PointToIndex(int x, int y)
     {
         return x + (y * World.acreSize.width);
     }
-    static int PosToIndex(Point pos)
+    static int PointToIndex(Point pos)
     {
         return pos.x + (pos.y * World.acreSize.width);
     }
-    static int PixelPosToIndex(Point pos)
+    static int PixelPointToIndex(Point pos)
     {
         return (pos.x / TileSize.width) + ((pos.y / TileSize.height) * World.acreSize.width);
     }
 
-    public CollisionType PosToCollision(int x, int y)
+    public CollisionType PointToCollision(int x, int y)
     {
         if (x < 0 || x >= World.acreSize.width || y < 0 || y >= World.acreSize.height)
         { return CollisionType.Walkable; } // collsion out of bounds is walkable
-        return collisionMap[PosToIndex(x, y)];
+        return collisionMap[PointToIndex(x, y)];
     }
 
     static CollisionType HeightToCollision(TileHeight height)
@@ -43,7 +43,7 @@ readonly struct Acre
         foreach (Prop prop in props)
         {
             if (prop.collision == null) { continue; }
-            collisionMap[PixelPosToIndex(prop.location)] = (CollisionType)prop.collision;
+            collisionMap[PixelPointToIndex(prop.location)] = (CollisionType)prop.collision;
         }
     }
 

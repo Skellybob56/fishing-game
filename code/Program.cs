@@ -64,7 +64,7 @@ static partial class Engine
     }
 
     public static CollisionType PointToCollision(int x, int y)
-    { return world.PosToCollision(x, y); }
+    { return world.PointToCollision(x, y); }
     public static CollisionType PointToCollision(Point p)
     { return PointToCollision(p.x, p.y); }
 
