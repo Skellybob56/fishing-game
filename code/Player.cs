@@ -33,6 +33,7 @@ class Player : Singleton<Player>
     float subtickTimeLength;
     Vector2 subtickDisplacement;
     AABBHit? closestAABBHit;
+    Point? closestTileHit;
     Vector2 oldVelocity = Vector2.Zero;
     float? rolloverTargetX;
     float? rolloverTargetY;
@@ -123,6 +124,7 @@ class Player : Singleton<Player>
             { fixedPosition += subtickDisplacement; return; }
 
             closestAABBHit = null;
+            closestTileHit = null;
             // iterate on each potentialCollidingTile
             for (int tileX = potentialCollidingTiles.position.x; tileX < potentialCollidingTiles.size.width + potentialCollidingTiles.position.x; tileX++)
             {
@@ -141,10 +143,11 @@ class Player : Singleton<Player>
                         subtickDisplacement = (aabbHit.Value.intersectionPoint - currentCollider.Position) * Utilities.TileSize;
                         subtickTimeLength *= aabbHit.Value.timeTillCollision;
                         closestAABBHit = aabbHit.Value; // store intersection data
+                        closestTileHit = new(tileX, tileY);
                     }
                 }
             }
-            if (!closestAABBHit.HasValue) // no intersection
+            if (!closestAABBHit.HasValue || !closestTileHit.HasValue) // no intersection (the nullness of these two variables should be tied but we're checking just to make sure)
             { fixedPosition += subtickDisplacement; return; }
             // reduce time by subtickTimeLength
             remainingTime -= subtickTimeLength;
