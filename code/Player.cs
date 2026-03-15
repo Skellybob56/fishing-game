@@ -151,6 +151,8 @@ class Player : Singleton<Player>
             }
             if (!closestAABBHit.HasValue || !closestTileHit.HasValue) // no intersection (the nullness of these two variables should be tied but we're checking just to make sure)
             { fixedPosition += subtickDisplacement; return; }
+            
+            subtickDisplacement = Vector2.Zero; // this is safe as subtick displacement will be applied using the stored intersection point
 
             AABBHit closestAABBHitV = closestAABBHit.Value;
             Point closestTileHitV = closestTileHit.Value;
@@ -165,6 +167,7 @@ class Player : Singleton<Player>
             velocity = velocity.MoveTowards(velocity.ApplyNormal(closestAABBHitV.collisionNormal), collisionVelocityCost);
 
             // check and apply nudge to round corner if needed
+            // todo: only apply nudge if player is applying input towards the wall
             if (closestAABBHitV.tEdge <= edgeBevelDepth || closestAABBHitV.tEdge >= 1f-edgeBevelDepth)
             {
                 bool horizontalCollision = closestAABBHitV.collisionNormal == CollisionNormal.Left ||
@@ -179,7 +182,7 @@ class Player : Singleton<Player>
                 if (Engine.PointToCollision(firstSample) == CollisionType.Walkable &&
                     Engine.PointToCollision(secondSample) == CollisionType.Walkable)
                 {
-                    // todo: apply nudge to displacement (somehow)
+                    // todo: add nudge to subtick displacement
                     // lerp nudge between zero when just barely on the bevel to the maximum when right at the edge
                     // ensure nudge is never greater than the distance to the edge, we don't want to overshoot the intention
                 }
@@ -188,8 +191,8 @@ class Player : Singleton<Player>
             // move to collision intersection
             fixedPosition = closestAABBHitV.intersectionPoint * Utilities.TileSize - collider.position;
 
-            // use the initial displacement to produce new displacement
-            subtickDisplacement = displacement * remainingTime;
+            // use the initial displacement to produce new displacement (note: this subtickDisplacement can also be modified by the nudge code above)
+            subtickDisplacement += displacement * remainingTime;
         }
     }
 
