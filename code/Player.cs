@@ -18,6 +18,8 @@ class Player : Singleton<Player>
     const float rolloverDeadzone = 0.25f; // how close you must be to a pixel grid boundry to shift in the opposite direction of prior 
     const float rolloverSpeed = 0.1f;
     const float collisionVelocityCost = 0.2f;
+    const float edgeBevelDepth = 0.25f;
+    const float maxNudgeDistance = 0.1f; // maximum distance of nudge (per frame) caused by edge bevel
 
     readonly NaturalRectangle collider = new(
         new Point(6, 13), // offset of top left corner from player positon
@@ -149,15 +151,43 @@ class Player : Singleton<Player>
             }
             if (!closestAABBHit.HasValue || !closestTileHit.HasValue) // no intersection (the nullness of these two variables should be tied but we're checking just to make sure)
             { fixedPosition += subtickDisplacement; return; }
+
+            AABBHit closestAABBHitV = closestAABBHit.Value;
+            Point closestTileHitV = closestTileHit.Value;
+
             // reduce time by subtickTimeLength
             remainingTime -= subtickTimeLength;
+
             // apply normal to displacement
-            displacement = displacement.ApplyNormal(closestAABBHit.Value.collisionNormal);
+            displacement = displacement.ApplyNormal(closestAABBHitV.collisionNormal);
+
             // apply normal partially to velocity
-            // todo: make the collision nudge the player around the corner if they collide near the corner of the staic box
-            velocity = Utilities.MoveTowards(velocity, velocity.ApplyNormal(closestAABBHit.Value.collisionNormal), collisionVelocityCost);
+            velocity = Utilities.MoveTowards(velocity, velocity.ApplyNormal(closestAABBHitV.collisionNormal), collisionVelocityCost);
+
+            // check and apply nudge to round corner if needed
+            if (closestAABBHitV.tEdge <= edgeBevelDepth || closestAABBHitV.tEdge >= 1f-edgeBevelDepth)
+            {
+                bool horizontalCollision = closestAABBHitV.collisionNormal == CollisionNormal.Left ||
+                    closestAABBHitV.collisionNormal == CollisionNormal.Right;
+                int nudgeSign = closestAABBHitV.tEdge > 0.5f? 1 : -1;
+                int normalSign = closestAABBHitV.collisionNormal == CollisionNormal.Right ||
+                    closestAABBHitV.collisionNormal == CollisionNormal.Down ? -1 : 1;
+                Point firstSample = horizontalCollision ? new(closestTileHitV.x, closestTileHitV.y + nudgeSign) :
+                    new(closestTileHitV.x + nudgeSign, closestTileHitV.y);
+                Point secondSample = horizontalCollision ? new(closestTileHitV.x + normalSign, closestTileHitV.y + nudgeSign) :
+                    new(closestTileHitV.x + nudgeSign, closestTileHitV.y + normalSign);
+                if (Engine.PointToCollision(firstSample) == CollisionType.Walkable &&
+                    Engine.PointToCollision(secondSample) == CollisionType.Walkable)
+                {
+                    // todo: apply nudge to displacement (somehow)
+                    // lerp nudge between zero when just barely on the bevel to the maximum when right at the edge
+                    // ensure nudge is never greater than the distance to the edge, we don't want to overshoot the intention
+                }
+            }
+
             // add subtick displacement to location
-            fixedPosition = closestAABBHit.Value.intersectionPoint * Utilities.TileSize - collider.position;
+            fixedPosition = closestAABBHitV.intersectionPoint * Utilities.TileSize - collider.position;
+
             // use the initial displacement to produce new displacement
             subtickDisplacement = displacement * remainingTime;
         }
