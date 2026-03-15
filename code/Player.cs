@@ -185,7 +185,7 @@ class Player : Singleton<Player>
                 }
             }
 
-            // add subtick displacement to location
+            // move to collision intersection
             fixedPosition = closestAABBHitV.intersectionPoint * Utilities.TileSize - collider.position;
 
             // use the initial displacement to produce new displacement
