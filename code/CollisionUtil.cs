@@ -72,7 +72,7 @@ public static class CollisionUtil
                 tMinimum = tYMinimum;
             }
         }
-        // if there is no horizontal movment and the point is not in the same y range of the box already then return direction miss
+        // if there is no vertical movment and the point is not in the same y range of the box already then return direction miss
         else if (point.Y <= boxMin.Y || point.Y >= boxMax.Y)
         { return null; }
 
