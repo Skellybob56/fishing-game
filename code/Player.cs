@@ -1,6 +1,7 @@
 ﻿using Raylib_cs;
 using static Raylib_cs.Raylib;
 using System.Numerics;
+using static FishingGame.Utilities;
 
 namespace FishingGame;
 
@@ -10,7 +11,7 @@ class Player : Singleton<Player>
     { return Register(new Player(position)); }
 
     readonly NaturalSize spriteSize = new(16, 16);
-
+    
     // consts
     const float topSpeed = 1f;
     const float acceleration = 0.1f;
@@ -19,7 +20,7 @@ class Player : Singleton<Player>
     const float rolloverSpeed = 0.1f;
     const float collisionVelocityCost = 0.2f;
     const float edgeBevelDepth = 0.25f;
-    const float maxNudgeDistance = 0.1f; // maximum distance of nudge (per frame) caused by edge bevel
+    const float maxNudgeDistance = 0.5f; // maximum distance of nudge (per frame) caused by edge bevel measured in portion of bevel length
 
     readonly NaturalRectangle collider = new(
         new Point(6, 13), // offset of top left corner from player positon
@@ -31,18 +32,9 @@ class Player : Singleton<Player>
     Vector2 velocity = Vector2.Zero;
     Vector2 wishVelocity;
     Vector2 displacement;
-    float remainingTime;
-    float subtickTimeLength;
-    Vector2 subtickDisplacement;
-    AABBHit? closestAABBHit;
-    Point? closestTileHit;
     Vector2 oldVelocity = Vector2.Zero;
     float? rolloverTargetX;
     float? rolloverTargetY;
-
-    Rectangle currentCollider;
-    NaturalRectangle currentCollidingTiles;
-    NaturalRectangle potentialCollidingTiles;
 
     // shared
     readonly Lock sharedDataLock = new();
@@ -93,17 +85,62 @@ class Player : Singleton<Player>
 
         // apply rollover
         if (rolloverTargetX.HasValue)
-        { displacement.X += Utilities.MovementTowards(fixedPosition.X, rolloverTargetX.Value, rolloverSpeed); }
+        { displacement.X += MovementTowards(fixedPosition.X, rolloverTargetX.Value, rolloverSpeed); }
         if (rolloverTargetY.HasValue)
-        { displacement.Y += Utilities.MovementTowards(fixedPosition.Y, rolloverTargetY.Value, rolloverSpeed); }
+        { displacement.Y += MovementTowards(fixedPosition.Y, rolloverTargetY.Value, rolloverSpeed); }
     }
 
     void ApplyDisplacement()
     {
+        Vector2 GetSubtickDisplacementNudge(AABBHit closestAABBHit, Point closestTileHit)
+        {
+            // todo: only apply nudge if player is applying input towards the wall
+            if (closestAABBHit.tEdge <= edgeBevelDepth || closestAABBHit.tEdge >= 1f - edgeBevelDepth)
+            {
+                bool horizontalCollision = closestAABBHit.collisionNormal == CollisionNormal.Left ||
+                    closestAABBHit.collisionNormal == CollisionNormal.Right;
+
+                int nudgeSign = closestAABBHit.tEdge > 0.5f ? 1 : -1;
+                int normalSign = closestAABBHit.collisionNormal == CollisionNormal.Right ||
+                    closestAABBHit.collisionNormal == CollisionNormal.Down ? -1 : 1;
+
+                Point firstSample = horizontalCollision ? new(closestTileHit.x, closestTileHit.y + nudgeSign) :
+                    new(closestTileHit.x + nudgeSign, closestTileHit.y);
+                Point secondSample = horizontalCollision ? new(closestTileHit.x + normalSign, closestTileHit.y + nudgeSign) :
+                    new(closestTileHit.x + nudgeSign, closestTileHit.y + normalSign);
+
+                if (Engine.PointToCollision(firstSample) == CollisionType.Walkable &&
+                    Engine.PointToCollision(secondSample) == CollisionType.Walkable)
+                {
+                    float tCorner = 0.5f - MathF.Abs(closestAABBHit.tEdge - 0.5f);
+                    float bevelStrength = 1 - (tCorner / edgeBevelDepth);
+                    float edgePixelLength = (horizontalCollision ? collider.size.height + TileSize.height : collider.size.width + TileSize.width);
+                    float bevelPixelLength = edgePixelLength * edgeBevelDepth;
+                    float edgeStart = horizontalCollision ? closestTileHit.y * TileSize.height - collider.size.height :
+                        closestTileHit.x * TileSize.width - collider.size.width; // only on nudge axis
+                    float cornerPixel = edgeStart + (nudgeSign > 0 ? edgePixelLength : 0f); // only on nudge axis
+                    Vector2 cornerDelta = horizontalCollision ? new(0f, cornerPixel - closestAABBHit.intersectionPoint.Y) :
+                        new(cornerPixel - closestAABBHit.intersectionPoint.X, 0f);
+
+                    // lerp nudge between zero when just barely on the bevel to the maximum when right at the edge
+                    // ensure nudge doesn't overshoot the corner
+                    return MovementTowards(Vector2.Zero, cornerDelta, maxNudgeDistance * bevelStrength * bevelPixelLength);
+                }
+            }
+            return Vector2.Zero;
+        }
+        
         if (displacement == Vector2.Zero) { return; }
 
-        remainingTime = 1f;
-        subtickDisplacement = displacement;
+
+        float remainingTime = 1f;
+        Vector2 subtickDisplacement = displacement;
+
+        float subtickTimeLength;
+        (AABBHit closestAABBHit, Point closestTileHit)? closestHit;
+        Rectangle currentCollider;
+        NaturalRectangle currentCollidingTiles;
+        NaturalRectangle potentialCollidingTiles;
 
         while (remainingTime > 0f) // while there is still time in the tick
         {
@@ -111,22 +148,21 @@ class Player : Singleton<Player>
 
             // measure the tiles the player is colliding with excluding the displacement
             currentCollider = new(
-                (fixedPosition + (Vector2)collider.position) / (Vector2)Utilities.TileSize,
-                ((Vector2)collider.size) / (Vector2)Utilities.TileSize
+                (fixedPosition + (Vector2)collider.position) / (Vector2)TileSize,
+                ((Vector2)collider.size) / (Vector2)TileSize
                 );
             currentCollidingTiles = NaturalRectangle.ExpansiveRound(currentCollider, false); // use open intervals as the player is not on tiles they are touching
 
             // measure the tiles the player is colliding with including the displacement
             potentialCollidingTiles = NaturalRectangle.ExpansiveRound(
-                currentCollider.GrowRectangle(subtickDisplacement / Utilities.TileSize)
+                currentCollider.GrowRectangle(subtickDisplacement / TileSize)
                 );
 
             // if the potentialCollidingTiles set is equal to the currentCollidingTiles set then just add displacement and return
             if (currentCollidingTiles == potentialCollidingTiles)
             { fixedPosition += subtickDisplacement; return; }
 
-            closestAABBHit = null;
-            closestTileHit = null;
+            closestHit = null;
             // iterate on each potentialCollidingTile
             for (int tileX = potentialCollidingTiles.position.x; tileX < potentialCollidingTiles.size.width + potentialCollidingTiles.position.x; tileX++)
             {
@@ -136,60 +172,41 @@ class Player : Singleton<Player>
                     if (Engine.PointToCollision(tileX, tileY) == CollisionType.Walkable) { continue; }
 
                     // get collision data
-                    AABBHit? aabbHit = CollisionUtil.SweepBoxAgainstBox(currentCollider, 
-                        subtickDisplacement / Utilities.TileSize, new(tileX, tileY, 1, 1));
-                    
+                    AABBHit? aabbHit = CollisionUtil.SweepBoxAgainstBox(currentCollider,
+                        subtickDisplacement / TileSize, new(tileX, tileY, 1, 1));
+
                     if (aabbHit != null) // if there is a collision
                     {
                         // set subtick displacement to bring the player just up to the tile
-                        subtickDisplacement = (aabbHit.Value.intersectionPoint - currentCollider.Position) * Utilities.TileSize;
+                        // shortening subtick displacment ensures that subsequent hits are only registered if even closer
+                        subtickDisplacement = (aabbHit.Value.intersectionPoint - currentCollider.Position) * TileSize;
                         subtickTimeLength *= aabbHit.Value.timeTillCollision;
-                        closestAABBHit = aabbHit.Value; // store intersection data
-                        closestTileHit = new(tileX, tileY);
+                        closestHit = new(aabbHit.Value, new(tileX, tileY)); // store intersection data
                     }
                 }
             }
-            if (!closestAABBHit.HasValue || !closestTileHit.HasValue) // no intersection (the nullness of these two variables should be tied but we're checking just to make sure)
+            if (!closestHit.HasValue) // no intersection
             { fixedPosition += subtickDisplacement; return; }
-            
+
             subtickDisplacement = Vector2.Zero; // this is safe as subtick displacement will be applied using the stored intersection point
 
-            AABBHit closestAABBHitV = closestAABBHit.Value;
-            Point closestTileHitV = closestTileHit.Value;
+            AABBHit closestAABBHit = closestHit.Value.closestAABBHit;
+            Point closestTileHit = closestHit.Value.closestTileHit;
 
             // reduce time by subtickTimeLength
             remainingTime -= subtickTimeLength;
 
             // apply normal to displacement
-            displacement = displacement.ApplyNormal(closestAABBHitV.collisionNormal);
+            displacement = displacement.ApplyNormal(closestAABBHit.collisionNormal);
 
             // apply normal partially to velocity
-            velocity = velocity.MoveTowards(velocity.ApplyNormal(closestAABBHitV.collisionNormal), collisionVelocityCost);
+            velocity = velocity.MoveTowards(velocity.ApplyNormal(closestAABBHit.collisionNormal), collisionVelocityCost);
 
             // check and apply nudge to round corner if needed
-            // todo: only apply nudge if player is applying input towards the wall
-            if (closestAABBHitV.tEdge <= edgeBevelDepth || closestAABBHitV.tEdge >= 1f-edgeBevelDepth)
-            {
-                bool horizontalCollision = closestAABBHitV.collisionNormal == CollisionNormal.Left ||
-                    closestAABBHitV.collisionNormal == CollisionNormal.Right;
-                int nudgeSign = closestAABBHitV.tEdge > 0.5f? 1 : -1;
-                int normalSign = closestAABBHitV.collisionNormal == CollisionNormal.Right ||
-                    closestAABBHitV.collisionNormal == CollisionNormal.Down ? -1 : 1;
-                Point firstSample = horizontalCollision ? new(closestTileHitV.x, closestTileHitV.y + nudgeSign) :
-                    new(closestTileHitV.x + nudgeSign, closestTileHitV.y);
-                Point secondSample = horizontalCollision ? new(closestTileHitV.x + normalSign, closestTileHitV.y + nudgeSign) :
-                    new(closestTileHitV.x + nudgeSign, closestTileHitV.y + normalSign);
-                if (Engine.PointToCollision(firstSample) == CollisionType.Walkable &&
-                    Engine.PointToCollision(secondSample) == CollisionType.Walkable)
-                {
-                    // todo: add nudge to subtick displacement
-                    // lerp nudge between zero when just barely on the bevel to the maximum when right at the edge
-                    // ensure nudge is never greater than the distance to the edge, we don't want to overshoot the intention
-                }
-            }
+            subtickDisplacement += GetSubtickDisplacementNudge(closestAABBHit, closestTileHit);
 
             // move to collision intersection
-            fixedPosition = closestAABBHitV.intersectionPoint * Utilities.TileSize - collider.position;
+            fixedPosition = closestAABBHit.intersectionPoint * TileSize - collider.position;
 
             // use the initial displacement to produce new displacement (note: this subtickDisplacement can also be modified by the nudge code above)
             subtickDisplacement += displacement * remainingTime;
@@ -205,11 +222,11 @@ class Player : Singleton<Player>
             // reducing in speed
             velocity = velocity.MoveTowards(wishVelocity, deceleration);
         }
-        else 
+        else
         {
             velocity = velocity.MoveTowards(wishVelocity, acceleration);
         }
-        
+
         displacement = velocity;
 
         // set displacement to shift player onto pixel grid when stationary
