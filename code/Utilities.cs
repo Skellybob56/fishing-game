@@ -22,35 +22,41 @@ public static class Utilities
     public const byte RockBaseTextureIndex = PropBaseTextureIndex + 0x10;
     public const byte FlowerBaseTextureIndex = PropBaseTextureIndex + 0x18;
 
-    static public Point GraphicIndexToPoint(byte graphicIndex)
+    public static Point GraphicIndexToPoint(byte graphicIndex)
     {
         return new((graphicIndex & 0x0f) * TileSize.width, ((graphicIndex & 0xf0) >> 4) * TileSize.height);
     }
-    static public Point GraphicIndexQuadrantToPoint(byte graphicIndex, int quadrant)
+    public static Point GraphicIndexQuadrantToPoint(byte graphicIndex, int quadrant)
     {
         return new((graphicIndex & 0x0f) * TileSize.width + (quadrant % 2 * TileSize.width / 2),
             ((graphicIndex & 0xf0) >> 4) * TileSize.height + (quadrant / 2 * TileSize.height / 2));
     }
 
-    static public float MovementTowards(this float current, float target, float maxDelta)
+    public static float MovementTowards(float current, float target, float maxDelta)
     {
         float delta = target - current;
         if (MathF.Abs(delta) <= maxDelta) { return delta; }
         return MathF.Sign(delta) * maxDelta;
     }
 
-    static public float MoveTowards(this float current, float target, float maxDelta)
+    public static Vector2 MovementTowards(Vector2 current, Vector2 target, float maxDelta)
     {
-        return current + current.MovementTowards(target, maxDelta);
+        return new(MovementTowards(current.X, target.X, maxDelta),
+            MovementTowards(current.X, target.Y, maxDelta));
     }
 
-    static public Vector2 MoveTowards(this Vector2 current, Vector2 target, float maxDelta)
+    public static float MoveTowards(this float current, float target, float maxDelta)
+    {
+        return current + MovementTowards(current, target, maxDelta);
+    }
+
+    public static Vector2 MoveTowards(this Vector2 current, Vector2 target, float maxDelta)
     {
         return new(current.X.MoveTowards(target.X, maxDelta),
             current.Y.MoveTowards(target.Y, maxDelta));
     }
 
-    static public Rectangle GrowRectangle(this Rectangle rect, Vector2 directionalGrowth)
+    public static Rectangle GrowRectangle(this Rectangle rect, Vector2 directionalGrowth)
     {
         Rectangle output = rect;
 
