@@ -162,7 +162,7 @@ class Player : Singleton<Player>
             displacement = displacement.ApplyNormal(closestAABBHitV.collisionNormal);
 
             // apply normal partially to velocity
-            velocity = Utilities.MoveTowards(velocity, velocity.ApplyNormal(closestAABBHitV.collisionNormal), collisionVelocityCost);
+            velocity = velocity.MoveTowards(velocity.ApplyNormal(closestAABBHitV.collisionNormal), collisionVelocityCost);
 
             // check and apply nudge to round corner if needed
             if (closestAABBHitV.tEdge <= edgeBevelDepth || closestAABBHitV.tEdge >= 1f-edgeBevelDepth)
@@ -200,11 +200,11 @@ class Player : Singleton<Player>
         if (Vector2.Dot(velocity, wishVelocity) < 0 || wishVelocity.LengthSquared() < velocity.LengthSquared())
         {
             // reducing in speed
-            velocity = Utilities.MoveTowards(velocity, wishVelocity, deceleration);
+            velocity = velocity.MoveTowards(wishVelocity, deceleration);
         }
         else 
         {
-            velocity = Utilities.MoveTowards(velocity, wishVelocity, acceleration); 
+            velocity = velocity.MoveTowards(wishVelocity, acceleration);
         }
         
         displacement = velocity;

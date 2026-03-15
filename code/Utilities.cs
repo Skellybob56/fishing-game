@@ -32,21 +32,22 @@ public static class Utilities
             ((graphicIndex & 0xf0) >> 4) * TileSize.height + (quadrant / 2 * TileSize.height / 2));
     }
 
-    static public float MovementTowards(float current, float target, float maxDelta)
+    static public float MovementTowards(this float current, float target, float maxDelta)
     {
         float delta = target - current;
         if (MathF.Abs(delta) <= maxDelta) { return delta; }
         return MathF.Sign(delta) * maxDelta;
     }
 
-    static public float MoveTowards(float current, float target, float maxDelta)
+    static public float MoveTowards(this float current, float target, float maxDelta)
     {
-        return current + MovementTowards(current, target, maxDelta);
+        return current + current.MovementTowards(target, maxDelta);
     }
 
-    static public Vector2 MoveTowards(Vector2 current, Vector2 target, float maxDelta)
+    static public Vector2 MoveTowards(this Vector2 current, Vector2 target, float maxDelta)
     {
-        return new(MoveTowards(current.X, target.X, maxDelta), MoveTowards(current.Y, target.Y, maxDelta));
+        return new(current.X.MoveTowards(target.X, maxDelta),
+            current.Y.MoveTowards(target.Y, maxDelta));
     }
 
     static public Rectangle GrowRectangle(this Rectangle rect, Vector2 directionalGrowth)
