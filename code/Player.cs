@@ -37,14 +37,13 @@ partial class Player : Singleton<Player>
 
     // shared
     readonly Lock sharedDataLock = new();
-    int oldCurrentInterpTick = -1;
     Vector2 sharedPosition;
     Vector2 sharedOldPosition;
 
     // render
     Vector2 renderPosition;
     Vector2 renderOldPosition;
-    Vector2 renderInterpolatedPosition;
+    int oldCurrentInterpTick = -1;
 
     private Player(Vector2 position)
     {
@@ -104,7 +103,7 @@ partial class Player : Singleton<Player>
             oldCurrentInterpTick = Engine.CurrentInterpTick;
         }
 
-        renderInterpolatedPosition = Vector2.Lerp(renderOldPosition, renderPosition, Engine.InterpT);
+        Vector2 renderInterpolatedPosition = Vector2.Lerp(renderOldPosition, renderPosition, Engine.InterpT);
 
         DrawTexturePro(
             Engine.playerTexture,
