@@ -53,7 +53,8 @@ class Controller : Singleton<Controller>
         if (WishDir.LengthSquared() > 1f) { WishDir = Vector2.Normalize(WishDir); }
     }
 
-    static public void FixedUpdate()
+    // not static in order to require that the caller has a reference to the singleton to allow the caller to call this function
+    public void FixedUpdate()
     {
         UpdateStickInput();
         UpdateWishDir();
