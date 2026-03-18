@@ -14,7 +14,7 @@ class Controller : Singleton<Controller>
     const float leftStickDeadzoneX = 0.2f;
     const float leftStickDeadzoneY = 0.2f;
 
-    static int gamepad = 0;
+    static int gamepad = 0; // todo: add detection for which gamepad is active
     static Vector2 leftStick;
 
     static void UpdateStickInput()

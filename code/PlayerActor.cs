@@ -1,11 +1,51 @@
 ﻿using Raylib_cs;
+using static Raylib_cs.Raylib;
 using System.Numerics;
 using static FishingGame.Utilities;
 
 namespace FishingGame;
 
-partial class Player : Singleton<Player>
+class PlayerActor : Singleton<PlayerActor>
 {
+    public static PlayerActor Create(Vector2 position)
+    { return Register(new PlayerActor(position)); }
+
+    // consts
+    const float topSpeed = 1f;
+    const float acceleration = 0.1f;
+    const float deceleration = 0.2f;
+    const float rolloverDeadzone = 0.25f; // how close you must be to a pixel grid boundry to shift in the opposite direction of prior 
+    const float rolloverSpeed = 0.1f;
+    const float collisionVelocityCost = 0.2f;
+    const float edgeBevelDepth = 0.4f;
+    const float maxNudgePortion = 0.1f; // maximum distance of nudge (per frame) caused by edge bevel measured in portion of bevel length
+
+    readonly NaturalRectangle collider = new(
+        new Point(6, 13), // offset of top left corner from playerActor positon
+        new NaturalSize(4, 2)
+        );
+
+    // fixed
+    Vector2 fixedPosition;
+    Vector2 velocity = Vector2.Zero;
+    Vector2 wishVelocity;
+    Vector2 displacement;
+    Vector2 oldVelocity = Vector2.Zero;
+    float? rolloverTargetX;
+    float? rolloverTargetY;
+
+    // shared
+    public Lock sharedDataLock { get; } = new();
+    public Vector2 sharedPosition { get; private set; }
+    public Vector2 sharedOldPosition { get; private set; }
+
+    private PlayerActor(Vector2 position)
+    {
+        fixedPosition = position;
+        sharedPosition = position;
+        sharedOldPosition = position;
+    }
+
     void Rollover()
     {
         // todo: make rollover static and leave mutation of variables to fixed update
@@ -36,7 +76,7 @@ partial class Player : Singleton<Player>
 
         // apply rollover
         if (rolloverTargetX.HasValue)
-        { displacement.X = MovementTowards(fixedPosition.X, rolloverTargetX.Value, rolloverSpeed); }
+        { displacement.X += MovementTowards(fixedPosition.X, rolloverTargetX.Value, rolloverSpeed); }
         if (rolloverTargetY.HasValue)
         { displacement.Y += MovementTowards(fixedPosition.Y, rolloverTargetY.Value, rolloverSpeed); }
     }
@@ -113,7 +153,7 @@ partial class Player : Singleton<Player>
                 (fixedPosition + collider.position) / TileSize,
                 (Vector2)collider.size / (Vector2)TileSize
                 );
-            NaturalRectangle currentCollidingTiles = NaturalRectangle.ExpansiveRound(currentCollider, false); // use open intervals as the player is not on tiles they are touching
+            NaturalRectangle currentCollidingTiles = NaturalRectangle.ExpansiveRound(currentCollider, false); // use open intervals as the playerActor is not on tiles they are touching
 
             // measure the tiles the player is colliding with including the displacement
             NaturalRectangle potentialCollidingTiles = NaturalRectangle.ExpansiveRound(
@@ -170,6 +210,42 @@ partial class Player : Singleton<Player>
 
             // check and apply nudge to round corner if needed (this can only happen once per edge per frame as displacement into a tile is entirely stopped on collision)
             subtickDisplacement = ApplySubtickDisplacementNudge(subtickDisplacement, closestAABBHit, closestTileHit, collider.size);
+        }
+    }
+
+    public void FixedUpdate()
+    {
+        wishVelocity = Controller.WishDir * topSpeed;
+        // todo: make deceleration faster when the player actively is opposing the current velocity than when they are just slowing down
+        // cont. use an enum to store the state of [acceleration/deceleration/turning around], it is useful to know elsewhere (e.g. ApplySubtickDisplacementNudge)
+        // cont. acceleration is when wishVelocity is equal to or greater than velocity in length and is facing in the same direction
+        // cont. deceleration is when wishVelocity is less than velocity in length and is facing in the same direction
+        // cont. turning around is when wishVelocity is facing away from velocity
+        if (Vector2.Dot(velocity, wishVelocity) < 0 || wishVelocity.LengthSquared() < velocity.LengthSquared())
+        {
+            // reducing in speed
+            velocity = velocity.MoveTowards(wishVelocity, deceleration);
+        }
+        else
+        {
+            velocity = velocity.MoveTowards(wishVelocity, acceleration);
+        }
+
+        displacement = velocity;
+
+        // set displacement to shift player onto pixel grid when stationary
+        Rollover();
+
+        ApplyDisplacement();
+
+        // old vars
+        oldVelocity = velocity;
+
+        // share data
+        lock (sharedDataLock)
+        {
+            sharedOldPosition = sharedPosition;
+            sharedPosition = fixedPosition;
         }
     }
 }

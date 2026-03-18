@@ -13,7 +13,7 @@ static partial class Engine
 
     // singletons
     static readonly Controller controller;
-    static readonly Player player;
+    static readonly (PlayerActor actor, PlayerSprite sprite) player;
     static readonly World world;
     static readonly RenderTexture2D lowRenderTexture;
     static readonly RenderTexture2D highRenderTexture;
@@ -51,7 +51,10 @@ static partial class Engine
         playerTexture = LoadTexture("textures/player.png");
 
         controller = Controller.Create();
-        player = Player.Create(new(36, 32));
+        {
+            PlayerActor playerActor = PlayerActor.Create(new(36, 32));
+            player = new(playerActor, PlayerSprite.Create(playerActor));
+        }
         world = World.Create();
 
         lowRenderTexture = LoadRenderTexture(internalWidth, internalHeight);
@@ -101,7 +104,7 @@ static partial class Engine
 
         EndTextureMode();
 
-        // todo: make high props that are at a smaller y (above in screen space) to the player's feet always render on the low render texture
+        // todo: make high props that are at a smaller y (above in screen space) to the playerSprite's feet always render on the low render texture
         BeginTextureMode(highRenderTexture);
         ClearBackground(new(0, 0, 0, 0)); // transparent background
 
@@ -124,7 +127,7 @@ static partial class Engine
 
         DrawTexturePro(lowRenderTexture.Texture, source, dest, Vector2.Zero, 0f, Color.White);
 
-        player.Render(dest.Position, graphicalScale);
+        player.sprite.Render(dest.Position, graphicalScale);
 
         DrawTexturePro(highRenderTexture.Texture, source, dest, Vector2.Zero, 0f, Color.White);
 
