@@ -9,7 +9,7 @@ static partial class Engine
     public const float FixedUpdateIntervalF = (float)FixedUpdateInterval;
     static Stopwatch stopwatchFixedUpdate = new();
     static long lastTickTimeFixedMSec;
-    public static int currentTick { get; private set; } = 0;
+    public static int CurrentTick { get; private set; } = 0;
 
     public static void FixedUpdateLoop()
     {
@@ -21,7 +21,7 @@ static partial class Engine
             long nextTickTimeFixedMSec;
             int remainingTimeFixedMSec;
 
-            ++currentTick;
+            ++CurrentTick;
             lastTickTimeFixedMSec = stopwatchFixedUpdate.ElapsedMilliseconds;
             FixedUpdate();
 

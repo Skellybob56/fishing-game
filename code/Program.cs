@@ -147,7 +147,7 @@ static partial class Engine
         while (Running)
         {
             Update();
-            CurrentInterpTick = currentTick;
+            CurrentInterpTick = CurrentTick;
             InterpT = (float)(stopwatchFixedUpdate.ElapsedMilliseconds - lastTickTimeFixedMSec) * (1f / FixedUpdateIntervalMSec);
             Render();
 

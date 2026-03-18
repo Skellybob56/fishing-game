@@ -35,15 +35,15 @@ class PlayerActor : Singleton<PlayerActor>
     float? rolloverTargetY;
 
     // shared
-    public Lock sharedDataLock { get; } = new();
-    public Vector2 sharedPosition { get; private set; }
-    public Vector2 sharedOldPosition { get; private set; }
+    public Lock SharedDataLock { get; } = new();
+    public Vector2 SharedPosition { get; private set; } // todo: consider making setters and getters require lock
+    public Vector2 SharedOldPosition { get; private set; }
 
     private PlayerActor(Vector2 position)
     {
         fixedPosition = position;
-        sharedPosition = position;
-        sharedOldPosition = position;
+        SharedPosition = position;
+        SharedOldPosition = position;
     }
 
     void Rollover()
@@ -242,10 +242,10 @@ class PlayerActor : Singleton<PlayerActor>
         oldVelocity = velocity;
 
         // share data
-        lock (sharedDataLock)
+        lock (SharedDataLock)
         {
-            sharedOldPosition = sharedPosition;
-            sharedPosition = fixedPosition;
+            SharedOldPosition = SharedPosition;
+            SharedPosition = fixedPosition;
         }
     }
 }

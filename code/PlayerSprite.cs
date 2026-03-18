@@ -24,10 +24,10 @@ class PlayerSprite : Singleton<PlayerSprite>
 
     void UpdateSharedData()
     {
-        lock (playerActor.sharedDataLock)
+        lock (playerActor.SharedDataLock)
         {
-            renderPosition = playerActor.sharedPosition;
-            renderOldPosition = playerActor.sharedOldPosition;
+            renderPosition = playerActor.SharedPosition;
+            renderOldPosition = playerActor.SharedOldPosition;
         }
         oldCurrentInterpTick = Engine.CurrentInterpTick;
     }
