@@ -101,6 +101,7 @@ static partial class Engine
 
         EndTextureMode();
 
+        // todo: make high props that are at a smaller y (above in screen space) to the player's feet always render on the low render texture
         BeginTextureMode(highRenderTexture);
         ClearBackground(new(0, 0, 0, 0)); // transparent background
 

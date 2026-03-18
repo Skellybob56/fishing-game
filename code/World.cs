@@ -129,6 +129,8 @@ public class World : Singleton<World>
 
     public void RenderHighProps()
     {
+        // todo: order high prop rendering to put those with the lowest y (most up in scren space) first
+        // cont. this must also include some concept of offset as the tile y of an overhang is actually one below where the overhang is drawn
         foreach (Prop prop in acre.highProps)
         {
             prop.Render();

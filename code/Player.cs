@@ -19,8 +19,8 @@ class Player : Singleton<Player>
     const float rolloverDeadzone = 0.25f; // how close you must be to a pixel grid boundry to shift in the opposite direction of prior 
     const float rolloverSpeed = 0.1f;
     const float collisionVelocityCost = 0.2f;
-    const float edgeBevelDepth = 0.25f;
-    const float maxNudgeDistance = 0.5f; // maximum distance of nudge (per frame) caused by edge bevel measured in portion of bevel length
+    const float edgeBevelDepth = 0.4f;
+    const float maxNudgePortion = 0.1f; // maximum distance of nudge (per frame) caused by edge bevel measured in portion of bevel length
 
     readonly NaturalRectangle collider = new(
         new Point(6, 13), // offset of top left corner from player positon
@@ -58,8 +58,9 @@ class Player : Singleton<Player>
 
     void Rollover()
     {
+        // todo: make rollover static and leave mutation of variables to fixed update
         // todo: make rollover start applying when the player stops actively moving in that axis.
-        // cont.: apply rollover gently to account for predicted player location if the player does not apply any movement on that axis
+        // cont. apply rollover gently to account for predicted player location if the player does not apply any movement on that axis
 
         // add or cancel rollover target for x
         if (velocity.X != 0) { rolloverTargetX = null; }
@@ -92,42 +93,57 @@ class Player : Singleton<Player>
 
     void ApplyDisplacement()
     {
-        Vector2 GetSubtickDisplacementNudge(AABBHit closestAABBHit, Point closestTileHit)
+        static Vector2 ApplySubtickDisplacementNudge(Vector2 unnudgedSubtickDisplacement, AABBHit hit, Point closestTileHit, NaturalSize colliderSize)
         {
             // todo: only apply nudge if player is applying input towards the wall
-            if (closestAABBHit.tEdge <= edgeBevelDepth || closestAABBHit.tEdge >= 1f - edgeBevelDepth)
+            // todo: bug: sometimes nudge doesn't get the player entirely around the edge. if you let go of the action pushing you into the edge, you shift exactly two pixels back away from the corner - seems to be caused by interaction with Rollover()
+            if (hit.tEdge < edgeBevelDepth || hit.tEdge > 1f - edgeBevelDepth)
             {
-                bool horizontalCollision = closestAABBHit.collisionNormal == CollisionNormal.Left ||
-                    closestAABBHit.collisionNormal == CollisionNormal.Right;
+                bool horizontalCollision = hit.collisionNormal == CollisionNormal.Left ||
+                    hit.collisionNormal == CollisionNormal.Right;
 
-                int nudgeSign = closestAABBHit.tEdge > 0.5f ? 1 : -1;
-                int normalSign = closestAABBHit.collisionNormal == CollisionNormal.Right ||
-                    closestAABBHit.collisionNormal == CollisionNormal.Down ? -1 : 1;
+                int nudgeSign = hit.tEdge > 0.5f ? 1 : -1;
+                int normalSign = hit.collisionNormal == CollisionNormal.Left ||
+                    hit.collisionNormal == CollisionNormal.Up ? -1 : 1;
 
-                Point firstSample = horizontalCollision ? new(closestTileHit.x, closestTileHit.y + nudgeSign) :
-                    new(closestTileHit.x + nudgeSign, closestTileHit.y);
-                Point secondSample = horizontalCollision ? new(closestTileHit.x + normalSign, closestTileHit.y + nudgeSign) :
-                    new(closestTileHit.x + nudgeSign, closestTileHit.y + normalSign);
+                Point firstSample = closestTileHit + // cardinal neighbour tile
+                    (horizontalCollision ? new(0, nudgeSign) : new(nudgeSign, 0));
+                Point secondSample = closestTileHit + // diagonal neighbour tile
+                    (horizontalCollision ? new(normalSign, nudgeSign) : new(nudgeSign, normalSign));
 
                 if (Engine.PointToCollision(firstSample) == CollisionType.Walkable &&
                     Engine.PointToCollision(secondSample) == CollisionType.Walkable)
                 {
-                    float tCorner = 0.5f - MathF.Abs(closestAABBHit.tEdge - 0.5f);
-                    float bevelStrength = 1 - (tCorner / edgeBevelDepth);
-                    float edgePixelLength = (horizontalCollision ? collider.size.height + TileSize.height : collider.size.width + TileSize.width);
-                    float bevelPixelLength = edgePixelLength * edgeBevelDepth;
-                    float edgeStart = horizontalCollision ? closestTileHit.y * TileSize.height - collider.size.height :
-                        closestTileHit.x * TileSize.width - collider.size.width; // only on nudge axis
-                    float cornerPixel = edgeStart + (nudgeSign > 0 ? edgePixelLength : 0f); // only on nudge axis
-                    Vector2 cornerDelta = horizontalCollision ? new(0f, cornerPixel - closestAABBHit.intersectionPoint.Y) :
-                        new(cornerPixel - closestAABBHit.intersectionPoint.X, 0f);
-
+                    float tCorner = 0.5f - MathF.Abs(hit.tEdge - 0.5f);
                     // lerp nudge between zero when just barely on the bevel to the maximum when right at the edge
-                    // ensure nudge doesn't overshoot the corner
-                    return MovementTowards(Vector2.Zero, cornerDelta, maxNudgeDistance * bevelStrength * bevelPixelLength);
+                    float bevelStrength = 1 - (tCorner / edgeBevelDepth);
+
+                    // nudge axis calculations
+                    float colliderLength = horizontalCollision? colliderSize.height : colliderSize.width;
+                    float tileSize = horizontalCollision ? TileSize.height : TileSize.width;
+                    float edgePixelLength = tileSize + colliderLength;
+                    float bevelPixelLength = edgePixelLength * edgeBevelDepth;
+                    float edgeStart = (horizontalCollision ? closestTileHit.y : closestTileHit.x) * tileSize - colliderLength;
+
+                    float cornerPixel = edgeStart + (nudgeSign > 0 ? edgePixelLength : 0f);
+                    float intersectionPixel = (horizontalCollision ? hit.intersectionPoint.Y : hit.intersectionPoint.X) * tileSize;
+                    float cornerDelta = cornerPixel - intersectionPixel;
+
+                    float displacedPredictedPosition = intersectionPixel + (horizontalCollision ? unnudgedSubtickDisplacement.Y : unnudgedSubtickDisplacement.X);
+
+                    // ensure that current displacement doesn't already round the corner
+                    if (displacedPredictedPosition * nudgeSign < cornerPixel * nudgeSign)
+                    {
+                        // ensure nudge doesn't overshoot the corner
+                        if (horizontalCollision)
+                        {
+                            return new(unnudgedSubtickDisplacement.X, unnudgedSubtickDisplacement.Y.MoveTowards(cornerDelta, maxNudgePortion * bevelStrength * bevelPixelLength));
+                        }
+                        return new(unnudgedSubtickDisplacement.X.MoveTowards(cornerDelta, maxNudgePortion * bevelStrength * bevelPixelLength), unnudgedSubtickDisplacement.Y);
+                    }
                 }
             }
-            return Vector2.Zero;
+            return unnudgedSubtickDisplacement;
         }
         
         if (displacement == Vector2.Zero) { return; }
@@ -172,7 +188,7 @@ class Player : Singleton<Player>
                     if (Engine.PointToCollision(tileX, tileY) == CollisionType.Walkable) { continue; }
 
                     // get collision data
-                    AABBHit? aabbHit = CollisionUtil.SweepBoxAgainstBox(currentCollider,
+                    AABBHit? aabbHit = CollisionUtil.SweepBoxAgainstBox(currentCollider, // todo: do sweep in pixel space to simplify maths everywhere
                         subtickDisplacement / TileSize, new(tileX, tileY, 1, 1));
 
                     if (aabbHit != null) // if there is a collision
@@ -188,8 +204,6 @@ class Player : Singleton<Player>
             if (!closestHit.HasValue) // no intersection
             { fixedPosition += subtickDisplacement; return; }
 
-            subtickDisplacement = Vector2.Zero; // this is safe as subtick displacement will be applied using the stored intersection point
-
             AABBHit closestAABBHit = closestHit.Value.closestAABBHit;
             Point closestTileHit = closestHit.Value.closestTileHit;
 
@@ -202,14 +216,14 @@ class Player : Singleton<Player>
             // apply normal partially to velocity
             velocity = velocity.MoveTowards(velocity.ApplyNormal(closestAABBHit.collisionNormal), collisionVelocityCost);
 
-            // check and apply nudge to round corner if needed
-            subtickDisplacement += GetSubtickDisplacementNudge(closestAABBHit, closestTileHit);
-
             // move to collision intersection
             fixedPosition = closestAABBHit.intersectionPoint * TileSize - collider.position;
 
-            // use the initial displacement to produce new displacement (note: this subtickDisplacement can also be modified by the nudge code above)
-            subtickDisplacement += displacement * remainingTime;
+            // use the initial displacement to produce new displacement
+            subtickDisplacement = displacement * remainingTime;
+
+            // check and apply nudge to round corner if needed (this can only happen once per edge per frame as displacement into a tile is entirely stopped on collision)
+            subtickDisplacement = ApplySubtickDisplacementNudge(subtickDisplacement, closestAABBHit, closestTileHit, collider.size);
         }
     }
 
@@ -217,6 +231,10 @@ class Player : Singleton<Player>
     {
         wishVelocity = Controller.WishDir * topSpeed;
         // todo: make deceleration faster when the player actively is opposing the current velocity than when they are just slowing down
+        // cont. use an enum to store the state of [acceleration/deceleration/turning around], it is useful to know elsewhere (e.g. ApplySubtickDisplacementNudge)
+        // cont. acceleration is when wishVelocity is equal to or greater than velocity in length and is facing in the same direction
+        // cont. deceleration is when wishVelocity is less than velocity in length and is facing in the same direction
+        // cont. turning around is when wishVelocity is facing away from velocity
         if (Vector2.Dot(velocity, wishVelocity) < 0 || wishVelocity.LengthSquared() < velocity.LengthSquared())
         {
             // reducing in speed
