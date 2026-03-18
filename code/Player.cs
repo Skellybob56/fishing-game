@@ -164,8 +164,8 @@ class Player : Singleton<Player>
 
             // measure the tiles the player is colliding with excluding the displacement
             currentCollider = new(
-                (fixedPosition + (Vector2)collider.position) / (Vector2)TileSize,
-                ((Vector2)collider.size) / (Vector2)TileSize
+                (fixedPosition + collider.position) / TileSize,
+                (Vector2)collider.size / (Vector2)TileSize
                 );
             currentCollidingTiles = NaturalRectangle.ExpansiveRound(currentCollider, false); // use open intervals as the player is not on tiles they are touching
 
@@ -280,7 +280,7 @@ class Player : Singleton<Player>
 
         DrawTexturePro(
             Engine.playerTexture,
-            new(0, spriteSize.height, (Vector2)spriteSize),
+            new(0, spriteSize.height, spriteSize),
             new(renderInterpolatedPosition * graphicalScale + screenPosition, (Vector2)spriteSize * graphicalScale),
             Vector2.Zero, 0f, Color.White
             );
