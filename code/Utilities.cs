@@ -34,9 +34,7 @@ public static class Utilities
 
     public static float MovementTowards(float current, float target, float maxDelta)
     {
-        float delta = target - current;
-        if (MathF.Abs(delta) <= maxDelta) { return delta; }
-        return MathF.Sign(delta) * maxDelta;
+        return current.MoveTowards(target, maxDelta) - current;
     }
 
     public static Vector2 MovementTowards(Vector2 current, Vector2 target, float maxDelta)
@@ -47,7 +45,9 @@ public static class Utilities
 
     public static float MoveTowards(this float current, float target, float maxDelta)
     {
-        return current + MovementTowards(current, target, maxDelta);
+        float delta = target - current;
+        if (MathF.Abs(delta) <= maxDelta) { return target; }
+        return current + MathF.Sign(delta) * maxDelta;
     }
 
     public static Vector2 MoveTowards(this Vector2 current, Vector2 target, float maxDelta)
