@@ -53,7 +53,7 @@ class Controller : Singleton<Controller>
         if (WishDir.LengthSquared() > 1f) { WishDir = Vector2.Normalize(WishDir); }
     }
 
-    public void FixedUpdate()
+    static public void FixedUpdate()
     {
         UpdateStickInput();
         UpdateWishDir();
