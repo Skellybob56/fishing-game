@@ -81,58 +81,58 @@ class PlayerActor : Singleton<PlayerActor>
         { displacement.Y += MovementTowards(fixedPosition.Y, rolloverTargetY.Value, rolloverSpeed); }
     }
 
-        static Vector2 ApplySubtickDisplacementNudge(Vector2 unnudgedSubtickDisplacement, AABBHit hit, Point closestTileHit, NaturalSize colliderSize)
+    static Vector2 ApplySubtickDisplacementNudge(Vector2 unnudgedSubtickDisplacement, AABBHit hit, Point closestTileHit, NaturalSize colliderSize)
+    {
+        // todo: only apply nudge if player is applying input towards the wall
+        // todo: bug: sometimes nudge doesn't get the player entirely around the edge. if you let go of the action pushing you into the edge, you shift exactly two pixels back away from the corner - seems to be caused by interaction with Rollover()
+        if (hit.tEdge < edgeBevelDepth || hit.tEdge > 1f - edgeBevelDepth)
         {
-            // todo: only apply nudge if player is applying input towards the wall
-            // todo: bug: sometimes nudge doesn't get the player entirely around the edge. if you let go of the action pushing you into the edge, you shift exactly two pixels back away from the corner - seems to be caused by interaction with Rollover()
-            if (hit.tEdge < edgeBevelDepth || hit.tEdge > 1f - edgeBevelDepth)
+            bool horizontalCollision = hit.collisionNormal == CollisionNormal.Left ||
+                hit.collisionNormal == CollisionNormal.Right;
+
+            int nudgeSign = hit.tEdge > 0.5f ? 1 : -1;
+            int normalSign = hit.collisionNormal == CollisionNormal.Left ||
+                hit.collisionNormal == CollisionNormal.Up ? -1 : 1;
+
+            Point firstSample = closestTileHit + // cardinal neighbour tile
+                (horizontalCollision ? new(0, nudgeSign) : new(nudgeSign, 0));
+            Point secondSample = closestTileHit + // diagonal neighbour tile
+                (horizontalCollision ? new(normalSign, nudgeSign) : new(nudgeSign, normalSign));
+
+            if (Engine.PointToCollision(firstSample) == CollisionType.Walkable &&
+                Engine.PointToCollision(secondSample) == CollisionType.Walkable)
             {
-                bool horizontalCollision = hit.collisionNormal == CollisionNormal.Left ||
-                    hit.collisionNormal == CollisionNormal.Right;
+                float tCorner = 0.5f - MathF.Abs(hit.tEdge - 0.5f);
+                // lerp nudge between zero when just barely on the bevel to the maximum when right at the edge
+                float bevelStrength = 1 - (tCorner / edgeBevelDepth);
 
-                int nudgeSign = hit.tEdge > 0.5f ? 1 : -1;
-                int normalSign = hit.collisionNormal == CollisionNormal.Left ||
-                    hit.collisionNormal == CollisionNormal.Up ? -1 : 1;
+                // nudge axis calculations
+                float colliderLength = horizontalCollision ? colliderSize.height : colliderSize.width;
+                float tileSize = horizontalCollision ? TileSize.height : TileSize.width;
+                float edgePixelLength = tileSize + colliderLength;
+                float bevelPixelLength = edgePixelLength * edgeBevelDepth;
+                float edgeStart = (horizontalCollision ? closestTileHit.y : closestTileHit.x) * tileSize - colliderLength;
 
-                Point firstSample = closestTileHit + // cardinal neighbour tile
-                    (horizontalCollision ? new(0, nudgeSign) : new(nudgeSign, 0));
-                Point secondSample = closestTileHit + // diagonal neighbour tile
-                    (horizontalCollision ? new(normalSign, nudgeSign) : new(nudgeSign, normalSign));
+                float cornerPixel = edgeStart + (nudgeSign > 0 ? edgePixelLength : 0f);
+                float intersectionPixel = (horizontalCollision ? hit.intersectionPoint.Y : hit.intersectionPoint.X) * tileSize;
+                float cornerDelta = cornerPixel - intersectionPixel;
 
-                if (Engine.PointToCollision(firstSample) == CollisionType.Walkable &&
-                    Engine.PointToCollision(secondSample) == CollisionType.Walkable)
+                float displacedPredictedPosition = intersectionPixel + (horizontalCollision ? unnudgedSubtickDisplacement.Y : unnudgedSubtickDisplacement.X);
+
+                // ensure that current displacement doesn't already round the corner
+                if (displacedPredictedPosition * nudgeSign < cornerPixel * nudgeSign)
                 {
-                    float tCorner = 0.5f - MathF.Abs(hit.tEdge - 0.5f);
-                    // lerp nudge between zero when just barely on the bevel to the maximum when right at the edge
-                    float bevelStrength = 1 - (tCorner / edgeBevelDepth);
-
-                    // nudge axis calculations
-                    float colliderLength = horizontalCollision ? colliderSize.height : colliderSize.width;
-                    float tileSize = horizontalCollision ? TileSize.height : TileSize.width;
-                    float edgePixelLength = tileSize + colliderLength;
-                    float bevelPixelLength = edgePixelLength * edgeBevelDepth;
-                    float edgeStart = (horizontalCollision ? closestTileHit.y : closestTileHit.x) * tileSize - colliderLength;
-
-                    float cornerPixel = edgeStart + (nudgeSign > 0 ? edgePixelLength : 0f);
-                    float intersectionPixel = (horizontalCollision ? hit.intersectionPoint.Y : hit.intersectionPoint.X) * tileSize;
-                    float cornerDelta = cornerPixel - intersectionPixel;
-
-                    float displacedPredictedPosition = intersectionPixel + (horizontalCollision ? unnudgedSubtickDisplacement.Y : unnudgedSubtickDisplacement.X);
-
-                    // ensure that current displacement doesn't already round the corner
-                    if (displacedPredictedPosition * nudgeSign < cornerPixel * nudgeSign)
+                    // ensure nudge doesn't overshoot the corner
+                    if (horizontalCollision)
                     {
-                        // ensure nudge doesn't overshoot the corner
-                        if (horizontalCollision)
-                        {
-                            return new(unnudgedSubtickDisplacement.X, unnudgedSubtickDisplacement.Y.MoveTowards(cornerDelta, maxNudgePortion * bevelStrength * bevelPixelLength));
-                        }
-                        return new(unnudgedSubtickDisplacement.X.MoveTowards(cornerDelta, maxNudgePortion * bevelStrength * bevelPixelLength), unnudgedSubtickDisplacement.Y);
+                        return new(unnudgedSubtickDisplacement.X, unnudgedSubtickDisplacement.Y.MoveTowards(cornerDelta, maxNudgePortion * bevelStrength * bevelPixelLength));
                     }
+                    return new(unnudgedSubtickDisplacement.X.MoveTowards(cornerDelta, maxNudgePortion * bevelStrength * bevelPixelLength), unnudgedSubtickDisplacement.Y);
                 }
             }
-            return unnudgedSubtickDisplacement;
         }
+        return unnudgedSubtickDisplacement;
+    }
 
     void ApplyDisplacement()
     {
