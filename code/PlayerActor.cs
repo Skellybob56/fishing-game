@@ -81,8 +81,6 @@ class PlayerActor : Singleton<PlayerActor>
         { displacement.Y += MovementTowards(fixedPosition.Y, rolloverTargetY.Value, rolloverSpeed); }
     }
 
-    void ApplyDisplacement()
-    {
         static Vector2 ApplySubtickDisplacementNudge(Vector2 unnudgedSubtickDisplacement, AABBHit hit, Point closestTileHit, NaturalSize colliderSize)
         {
             // todo: only apply nudge if player is applying input towards the wall
@@ -136,6 +134,8 @@ class PlayerActor : Singleton<PlayerActor>
             return unnudgedSubtickDisplacement;
         }
 
+    void ApplyDisplacement()
+    {
         if (displacement == Vector2.Zero) { return; }
 
 
