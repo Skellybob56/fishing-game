@@ -48,31 +48,31 @@ class PlayerActor : Singleton<PlayerActor>
 
     void Rollover()
     {
-        // todo: make rollover static and leave mutation of variables to fixed update
         // todo: make rollover start applying when the player stops actively moving in that axis.
         // cont. apply rollover gently to account for predicted player location if the player does not apply any movement on that axis
 
+        Vector2 truncated = new(MathF.Truncate(fixedPosition.X), MathF.Truncate(fixedPosition.Y));
+        Vector2 fract = fixedPosition - truncated;
+
         // add or cancel rollover target for x
-        if (velocity.X != 0) { rolloverTargetX = null; }
-        else if (oldVelocity.X != 0)
+        if (velocity.X != 0f) { rolloverTargetX = null; }
+        else if (oldVelocity.X != 0f)
         {
-            float fract = fixedPosition.X - MathF.Truncate(fixedPosition.X);
-            rolloverTargetX = (fract <= rolloverDeadzone || fract >= (1f - rolloverDeadzone))
+            rolloverTargetX = (fract.X <= rolloverDeadzone || fract.X >= (1f - rolloverDeadzone) || oldVelocity.X == 0f)
                 ? MathF.Round(fixedPosition.X)
-                : (oldVelocity.X > 0 ? MathF.Ceiling(fixedPosition.X) : MathF.Floor(fixedPosition.X));
+                : (oldVelocity.X > 0f ? MathF.Ceiling(fixedPosition.X) : MathF.Floor(fixedPosition.X));
         }
-        if (fixedPosition.X == rolloverTargetX) { rolloverTargetX = null; }
+        else { rolloverTargetX = null; }
 
         // add or cancel rollover target for y
-        if (velocity.Y != 0) { rolloverTargetY = null; }
-        else if (oldVelocity.Y != 0)
+        if (velocity.Y != 0f) { rolloverTargetY = null; }
+        else if (oldVelocity.Y != 0f)
         {
-            float fract = fixedPosition.Y - MathF.Truncate(fixedPosition.Y);
-            rolloverTargetY = (fract <= rolloverDeadzone || fract >= (1f - rolloverDeadzone))
+            rolloverTargetY = (fract.Y <= rolloverDeadzone || fract.Y >= (1f - rolloverDeadzone) || oldVelocity.Y == 0f)
                 ? MathF.Round(fixedPosition.Y)
-                : (oldVelocity.Y > 0 ? MathF.Ceiling(fixedPosition.Y) : MathF.Floor(fixedPosition.Y));
+                : (oldVelocity.Y > 0f ? MathF.Ceiling(fixedPosition.Y) : MathF.Floor(fixedPosition.Y));
         }
-        if (fixedPosition.Y == rolloverTargetY) { rolloverTargetY = null; }
+        else { rolloverTargetY = null; }
 
         // apply rollover
         if (rolloverTargetX.HasValue)
