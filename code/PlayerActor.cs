@@ -51,7 +51,6 @@ class PlayerActor : Singleton<PlayerActor>
     float? rolloverTargetX;
     float? rolloverTargetY;
     NudgeFlags nudgeFlags = NudgeFlags.NoNudge;
-    AccelerationMode accelerationMode = AccelerationMode.Static;
 
     // shared
     public Lock SharedDataLock { get; } = new();
@@ -236,7 +235,6 @@ class PlayerActor : Singleton<PlayerActor>
                 float? nudge = ApplySubtickDisplacementNudge(subtickDisplacement, wishVelocity, closestAABBHit, horizontalCollision, closestTileHit, collider.size);
                 if (nudge.HasValue)
                 {
-                    // todo: write to nudged flag based on horizontalCollision
                     if (horizontalCollision)
                     {
                         subtickDisplacement.Y = nudge.Value;
@@ -270,7 +268,7 @@ class PlayerActor : Singleton<PlayerActor>
     public void FixedUpdate()
     {
         wishVelocity = Controller.WishDir * topSpeed;
-        accelerationMode = GetAccelerationMode(wishVelocity, velocity);
+        AccelerationMode accelerationMode = GetAccelerationMode(wishVelocity, velocity);
 
         if (accelerationMode == AccelerationMode.Accelerating)
         {
