@@ -62,7 +62,7 @@ class PlayerActor : Singleton<PlayerActor>
 
         Vector2 truncated = new(MathF.Truncate(fixedPosition.X), MathF.Truncate(fixedPosition.Y));
         Vector2 fract = fixedPosition - truncated;
-        Console.WriteLine(nudgeFlags);
+
         // add or cancel rollover target for x
         if (velocity.X != 0f || (nudgeFlags & NudgeFlags.XNudge) == NudgeFlags.XNudge) 
         { rolloverTargetX = null; }
