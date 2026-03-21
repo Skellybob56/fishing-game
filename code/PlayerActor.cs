@@ -82,6 +82,8 @@ class PlayerActor : Singleton<PlayerActor>
                 ? MathF.Round(fixedPosition.X)
                 : (oldVelocity.X > 0f ? MathF.Ceiling(fixedPosition.X) : MathF.Floor(fixedPosition.X));
         }
+        else if (fixedPosition.X != truncated.X && rolloverTargetX == null)
+        { rolloverTargetX = MathF.Round(fixedPosition.X); }
         if (fixedPosition.X == rolloverTargetX) { rolloverTargetX = null; }
 
         // add or cancel rollover target for y
@@ -93,6 +95,8 @@ class PlayerActor : Singleton<PlayerActor>
                 ? MathF.Round(fixedPosition.Y)
                 : (oldVelocity.Y > 0f ? MathF.Ceiling(fixedPosition.Y) : MathF.Floor(fixedPosition.Y));
         }
+        else if (fixedPosition.Y != truncated.Y && rolloverTargetY == null)
+        { rolloverTargetY = MathF.Round(fixedPosition.Y); }
         if (fixedPosition.Y == rolloverTargetY) { rolloverTargetY = null; }
 
         // apply rollover
@@ -153,10 +157,9 @@ class PlayerActor : Singleton<PlayerActor>
 
     void ApplyDisplacement()
     {
-        if (displacement == Vector2.Zero) { return; }
-
-        // todo: clear nudged flags
         nudgeFlags = NudgeFlags.NoNudge;
+
+        if (displacement == Vector2.Zero) { return; }
 
         float remainingTime = 1f;
         Vector2 subtickDisplacement = displacement;
