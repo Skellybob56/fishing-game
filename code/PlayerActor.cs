@@ -265,7 +265,7 @@ class PlayerActor : Singleton<PlayerActor>
     {
         wishVelocity = Controller.WishDir * topSpeed;
         accelerationMode = GetAccelerationMode(wishVelocity, velocity);
-        Console.WriteLine(accelerationMode);
+
         if (accelerationMode == AccelerationMode.Accelerating)
         {
             velocity = velocity.MoveTowards(wishVelocity, acceleration);
