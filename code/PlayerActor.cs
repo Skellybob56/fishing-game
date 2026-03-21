@@ -7,6 +7,14 @@ namespace FishingGame;
 
 class PlayerActor : Singleton<PlayerActor>
 {
+    [Flags]
+    enum NudgeFlags : byte
+    {
+        NoNudge = 0,
+        XNudge = 1,
+        YNudge = 2
+    }
+
     public static PlayerActor Create(Vector2 position)
     { return Register(new PlayerActor(position)); }
 
@@ -33,6 +41,7 @@ class PlayerActor : Singleton<PlayerActor>
     Vector2 oldVelocity = Vector2.Zero;
     float? rolloverTargetX;
     float? rolloverTargetY;
+    NudgeFlags nudgeFlags = NudgeFlags.NoNudge;
 
     // shared
     public Lock SharedDataLock { get; } = new();
@@ -53,26 +62,28 @@ class PlayerActor : Singleton<PlayerActor>
 
         Vector2 truncated = new(MathF.Truncate(fixedPosition.X), MathF.Truncate(fixedPosition.Y));
         Vector2 fract = fixedPosition - truncated;
-
+        Console.WriteLine(nudgeFlags);
         // add or cancel rollover target for x
-        if (velocity.X != 0f) { rolloverTargetX = null; }
+        if (velocity.X != 0f || (nudgeFlags & NudgeFlags.XNudge) == NudgeFlags.XNudge) 
+        { rolloverTargetX = null; }
         else if (oldVelocity.X != 0f)
         {
-            rolloverTargetX = (fract.X <= rolloverDeadzone || fract.X >= (1f - rolloverDeadzone) || oldVelocity.X == 0f)
+            rolloverTargetX = (fract.X <= rolloverDeadzone || fract.X >= (1f - rolloverDeadzone))
                 ? MathF.Round(fixedPosition.X)
                 : (oldVelocity.X > 0f ? MathF.Ceiling(fixedPosition.X) : MathF.Floor(fixedPosition.X));
         }
-        else { rolloverTargetX = null; }
+        if (fixedPosition.X == rolloverTargetX) { rolloverTargetX = null; }
 
         // add or cancel rollover target for y
-        if (velocity.Y != 0f) { rolloverTargetY = null; }
+        if (velocity.Y != 0f || (nudgeFlags & NudgeFlags.YNudge) == NudgeFlags.YNudge) 
+        { rolloverTargetY = null; }
         else if (oldVelocity.Y != 0f)
         {
-            rolloverTargetY = (fract.Y <= rolloverDeadzone || fract.Y >= (1f - rolloverDeadzone) || oldVelocity.Y == 0f)
+            rolloverTargetY = (fract.Y <= rolloverDeadzone || fract.Y >= (1f - rolloverDeadzone))
                 ? MathF.Round(fixedPosition.Y)
                 : (oldVelocity.Y > 0f ? MathF.Ceiling(fixedPosition.Y) : MathF.Floor(fixedPosition.Y));
         }
-        else { rolloverTargetY = null; }
+        if (fixedPosition.Y == rolloverTargetY) { rolloverTargetY = null; }
 
         // apply rollover
         if (rolloverTargetX.HasValue)
@@ -81,15 +92,11 @@ class PlayerActor : Singleton<PlayerActor>
         { displacement.Y += MovementTowards(fixedPosition.Y, rolloverTargetY.Value, rolloverSpeed); }
     }
 
-    static Vector2 ApplySubtickDisplacementNudge(Vector2 unnudgedSubtickDisplacement, AABBHit hit, Point closestTileHit, NaturalSize colliderSize)
+    static float? ApplySubtickDisplacementNudge(Vector2 unnudgedSubtickDisplacement, AABBHit hit, bool horizontalCollision, Point closestTileHit, NaturalSize colliderSize)
     {
         // todo: only apply nudge if player is applying input towards the wall
-        // todo: bug: sometimes nudge doesn't get the player entirely around the edge. if you let go of the action pushing you into the edge, you shift exactly two pixels back away from the corner - seems to be caused by interaction with Rollover()
         if (hit.tEdge < edgeBevelDepth || hit.tEdge > 1f - edgeBevelDepth)
         {
-            bool horizontalCollision = hit.collisionNormal == CollisionNormal.Left ||
-                hit.collisionNormal == CollisionNormal.Right;
-
             int nudgeSign = hit.tEdge > 0.5f ? 1 : -1;
             int normalSign = hit.collisionNormal == CollisionNormal.Left ||
                 hit.collisionNormal == CollisionNormal.Up ? -1 : 1;
@@ -110,34 +117,33 @@ class PlayerActor : Singleton<PlayerActor>
                 float colliderLength = horizontalCollision ? colliderSize.height : colliderSize.width;
                 float tileSize = horizontalCollision ? TileSize.height : TileSize.width;
                 float edgePixelLength = tileSize + colliderLength;
-                float bevelPixelLength = edgePixelLength * edgeBevelDepth;
                 float edgeStart = (horizontalCollision ? closestTileHit.y : closestTileHit.x) * tileSize - colliderLength;
 
                 float cornerPixel = edgeStart + (nudgeSign > 0 ? edgePixelLength : 0f);
                 float intersectionPixel = (horizontalCollision ? hit.intersectionPoint.Y : hit.intersectionPoint.X) * tileSize;
                 float cornerDelta = cornerPixel - intersectionPixel;
 
-                float displacedPredictedPosition = intersectionPixel + (horizontalCollision ? unnudgedSubtickDisplacement.Y : unnudgedSubtickDisplacement.X);
+                float unnudgedSubtickDelta = horizontalCollision ? unnudgedSubtickDisplacement.Y : unnudgedSubtickDisplacement.X;
+                float displacedPredictedPosition = intersectionPixel + unnudgedSubtickDelta;
 
                 // ensure that current displacement doesn't already round the corner
                 if (displacedPredictedPosition * nudgeSign < cornerPixel * nudgeSign)
                 {
+                    float bevelMaxDelta = maxNudgePortion * (bevelStrength * (edgePixelLength * edgeBevelDepth));
                     // ensure nudge doesn't overshoot the corner
-                    if (horizontalCollision)
-                    {
-                        return new(unnudgedSubtickDisplacement.X, unnudgedSubtickDisplacement.Y.MoveTowards(cornerDelta, maxNudgePortion * bevelStrength * bevelPixelLength));
-                    }
-                    return new(unnudgedSubtickDisplacement.X.MoveTowards(cornerDelta, maxNudgePortion * bevelStrength * bevelPixelLength), unnudgedSubtickDisplacement.Y);
+                    return unnudgedSubtickDelta.MoveTowards(cornerDelta, bevelMaxDelta);
                 }
             }
         }
-        return unnudgedSubtickDisplacement;
+        return null;
     }
 
     void ApplyDisplacement()
     {
         if (displacement == Vector2.Zero) { return; }
 
+        // todo: clear nudged flags
+        nudgeFlags = NudgeFlags.NoNudge;
 
         float remainingTime = 1f;
         Vector2 subtickDisplacement = displacement;
@@ -209,7 +215,24 @@ class PlayerActor : Singleton<PlayerActor>
             subtickDisplacement = displacement * remainingTime;
 
             // check and apply nudge to round corner if needed (this can only happen once per edge per frame as displacement into a tile is entirely stopped on collision)
-            subtickDisplacement = ApplySubtickDisplacementNudge(subtickDisplacement, closestAABBHit, closestTileHit, collider.size);
+            {
+                bool horizontalCollision = closestAABBHit.collisionNormal == CollisionNormal.Left || closestAABBHit.collisionNormal == CollisionNormal.Right;
+                float? nudge = ApplySubtickDisplacementNudge(subtickDisplacement, closestAABBHit, horizontalCollision, closestTileHit, collider.size);
+                if (nudge.HasValue)
+                {
+                    // todo: write to nudged flag based on horizontalCollision
+                    if (horizontalCollision)
+                    {
+                        subtickDisplacement.Y = nudge.Value;
+                        nudgeFlags |= NudgeFlags.YNudge;
+                    }
+                    else
+                    {
+                        subtickDisplacement.X = nudge.Value;
+                        nudgeFlags |= NudgeFlags.XNudge;
+                    }
+                }
+            }
         }
     }
 
