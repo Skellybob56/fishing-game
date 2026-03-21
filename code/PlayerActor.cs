@@ -7,6 +7,14 @@ namespace FishingGame;
 
 class PlayerActor : Singleton<PlayerActor>
 {
+    enum AccelerationMode : byte
+    {
+        Static,
+        Accelerating,
+        Decelerating,
+        CounterAccelerating
+    }
+
     [Flags]
     enum NudgeFlags : byte
     {
@@ -22,6 +30,7 @@ class PlayerActor : Singleton<PlayerActor>
     const float topSpeed = 1f;
     const float acceleration = 0.1f;
     const float deceleration = 0.2f;
+    const float counterAcceleration = 0.3f;
     const float rolloverDeadzone = 0.25f; // how close you must be to a pixel grid boundry to shift in the opposite direction of prior 
     const float rolloverSpeed = 0.1f;
     const float collisionVelocityCost = 0.2f;
@@ -42,6 +51,7 @@ class PlayerActor : Singleton<PlayerActor>
     float? rolloverTargetX;
     float? rolloverTargetY;
     NudgeFlags nudgeFlags = NudgeFlags.NoNudge;
+    AccelerationMode accelerationMode = AccelerationMode.Static;
 
     // shared
     public Lock SharedDataLock { get; } = new();
@@ -236,22 +246,37 @@ class PlayerActor : Singleton<PlayerActor>
         }
     }
 
+    static AccelerationMode GetAccelerationMode(Vector2 wishVelocity, Vector2 velocity)
+    {
+        if (velocity == Vector2.Zero)
+        { return wishVelocity == Vector2.Zero? AccelerationMode.Static : AccelerationMode.Accelerating; }
+
+        if (wishVelocity == Vector2.Zero)
+        { return AccelerationMode.Decelerating; }
+
+        if (Vector2.Dot(velocity, wishVelocity) < 0)
+        { return AccelerationMode.CounterAccelerating; }
+
+        // rotational changes within one quarter of a rotation from velocity direction can benefit from 'deceleration' acceleration speeds if wishDir magnitude <= velocity magnitude
+        return wishVelocity.LengthSquared() <= velocity.LengthSquared()? AccelerationMode.Decelerating : AccelerationMode.Accelerating;
+    }
+
     public void FixedUpdate()
     {
         wishVelocity = Controller.WishDir * topSpeed;
-        // todo: make deceleration faster when the player actively is opposing the current velocity than when they are just slowing down
-        // cont. use an enum to store the state of [acceleration/deceleration/turning around], it is useful to know elsewhere (e.g. ApplySubtickDisplacementNudge)
-        // cont. acceleration is when wishVelocity is equal to or greater than velocity in length and is facing in the same direction
-        // cont. deceleration is when wishVelocity is less than velocity in length and is facing in the same direction
-        // cont. turning around is when wishVelocity is facing away from velocity
-        if (Vector2.Dot(velocity, wishVelocity) < 0 || wishVelocity.LengthSquared() < velocity.LengthSquared())
-        {
-            // reducing in speed
-            velocity = velocity.MoveTowards(wishVelocity, deceleration);
-        }
-        else
+        accelerationMode = GetAccelerationMode(wishVelocity, velocity);
+        Console.WriteLine(accelerationMode);
+        if (accelerationMode == AccelerationMode.Accelerating)
         {
             velocity = velocity.MoveTowards(wishVelocity, acceleration);
+        }
+        else if (accelerationMode == AccelerationMode.Decelerating)
+        {
+            velocity = velocity.MoveTowards(wishVelocity, deceleration);
+        }
+        else if (accelerationMode == AccelerationMode.CounterAccelerating)
+        {
+            velocity = velocity.MoveTowards(wishVelocity, counterAcceleration);
         }
 
         displacement = velocity;
