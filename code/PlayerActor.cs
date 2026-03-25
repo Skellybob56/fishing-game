@@ -31,7 +31,6 @@ class PlayerActor : Singleton<PlayerActor>
     const float acceleration = 0.1f;
     const float deceleration = 0.2f;
     const float counterAcceleration = 0.3f;
-    const float rolloverDeadzone = 0.25f; // how close you must be to a pixel grid boundry to shift in the opposite direction of prior 
     const float rolloverSpeed = 0.1f;
     const float collisionVelocityCost = 0.2f;
     const float edgeBevelDepth = 0.4f;
@@ -43,13 +42,10 @@ class PlayerActor : Singleton<PlayerActor>
         );
 
     // fixed
-    Vector2 fixedPosition;
+    Vector2 fixedPosition; // todo: remove word 'fixed' from this variable name (vestigial from when renderPosition was in the same class)
     Vector2 velocity = Vector2.Zero;
     Vector2 wishVelocity;
     Vector2 displacement;
-    Vector2 oldVelocity = Vector2.Zero;
-    float? rolloverTargetX;
-    float? rolloverTargetY;
     NudgeFlags nudgeFlags = NudgeFlags.NoNudge;
 
     // shared
@@ -66,46 +62,80 @@ class PlayerActor : Singleton<PlayerActor>
 
     void Rollover()
     {
-        // todo: make rollover start applying when the player stops actively moving in that axis.
-        // cont. apply rollover gently to account for predicted player location if the player does not apply any movement on that axis
-        // cont. check if not moving and not wishing to move per axis and if so apply movement towards nearest grid line
-        // cont. check if moving but not wishing to move per axis and if so, predict slow down length in ticks and the final location of
-        //     the player and then apply a small modification to displacement to aim to land the player on a grid line (can be cleaned by the static player code)
-
-        Vector2 truncated = new(MathF.Truncate(fixedPosition.X), MathF.Truncate(fixedPosition.Y));
-        Vector2 fract = fixedPosition - truncated;
-
-        // add or cancel rollover target for x
-        if (velocity.X != 0f || (nudgeFlags & NudgeFlags.XNudge) == NudgeFlags.XNudge) 
-        { rolloverTargetX = null; }
-        else if (oldVelocity.X != 0f)
+        static void PredictStoppingPositionAndTime(float position, float orthogonalWishVelocity, Vector2 velocity, int axis, out int ticksTillStatic, out float finalPosition)
         {
-            rolloverTargetX = (fract.X <= rolloverDeadzone || fract.X >= (1f - rolloverDeadzone))
-                ? MathF.Round(fixedPosition.X)
-                : (oldVelocity.X > 0f ? MathF.Ceiling(fixedPosition.X) : MathF.Floor(fixedPosition.X));
-        }
-        else if (fixedPosition.X != truncated.X && rolloverTargetX == null)
-        { rolloverTargetX = MathF.Round(fixedPosition.X); }
-        if (fixedPosition.X == rolloverTargetX) { rolloverTargetX = null; }
+            Vector2 wishVelocity = Vector2.Zero;
+            wishVelocity[axis == 0 ? 1 : 0] = orthogonalWishVelocity;
 
-        // add or cancel rollover target for y
-        if (velocity.Y != 0f || (nudgeFlags & NudgeFlags.YNudge) == NudgeFlags.YNudge) 
-        { rolloverTargetY = null; }
-        else if (oldVelocity.Y != 0f)
+            finalPosition = position;
+
+            ticksTillStatic = 0;
+            while (velocity[axis] != 0) // wishVelocity[axis] must be equal to zero so 
+            {
+                ticksTillStatic++;
+                finalPosition += velocity[axis];
+
+                // todo: unify this code with the identical code in FixedUpdate()
+                // < snippet from FixedUpdate() >
+                AccelerationMode accelerationMode = GetAccelerationMode(wishVelocity, velocity);
+
+                if (accelerationMode == AccelerationMode.Accelerating)
+                {
+                    velocity = velocity.MoveTowards(wishVelocity, acceleration);
+                }
+                else if (accelerationMode == AccelerationMode.Decelerating)
+                {
+                    velocity = velocity.MoveTowards(wishVelocity, deceleration);
+                }
+                else if (accelerationMode == AccelerationMode.CounterAccelerating)
+                {
+                    velocity = velocity.MoveTowards(wishVelocity, counterAcceleration);
+                }
+                // </snippet from FixedUpdate() >
+            }
+        }
+
+        // todo: bug: the rollover makes it frustratingly difficult to move a single pixel
+        // cont. in coast: if ((finalPosition - fixedPosition[axis]) + distanceMovedSinceStartOfCoast < 1f) then force finalPositionTarget to round in favour of velocity direction
+        // cont. if this isn't strong enough, the 1f constant can be increased to make this apply to small movements of greater than one pixel
+        //       (though, this may make small movements feel hard to control)
+        // cont. if the fixes above don't solve the problem, you can also see in static if we have become static out of a coast where we were forcing a round in favour of velocity
+        //       direction. if this is the case, static should also force a round in favour of that direction
+
+        // todo: bug: rollover seems to overshoot and bounce-back frequently when simply moving on one axis and stopping.
+
+        for (int axis = 0; axis < 2; axis++)
         {
-            rolloverTargetY = (fract.Y <= rolloverDeadzone || fract.Y >= (1f - rolloverDeadzone))
-                ? MathF.Round(fixedPosition.Y)
-                : (oldVelocity.Y > 0f ? MathF.Ceiling(fixedPosition.Y) : MathF.Floor(fixedPosition.Y));
-        }
-        else if (fixedPosition.Y != truncated.Y && rolloverTargetY == null)
-        { rolloverTargetY = MathF.Round(fixedPosition.Y); }
-        if (fixedPosition.Y == rolloverTargetY) { rolloverTargetY = null; }
+            // return if not appropriate for rollover
+            if (wishVelocity[axis] != 0 || (axis == 0 ? nudgeFlags.HasFlag(NudgeFlags.XNudge) : nudgeFlags.HasFlag(NudgeFlags.YNudge)))
+            { continue; }
 
-        // apply rollover
-        if (rolloverTargetX.HasValue)
-        { displacement.X += MovementTowards(fixedPosition.X, rolloverTargetX.Value, rolloverSpeed); }
-        if (rolloverTargetY.HasValue)
-        { displacement.Y += MovementTowards(fixedPosition.Y, rolloverTargetY.Value, rolloverSpeed); }
+            if (velocity[axis] == 0) // static
+            {
+                float positionTarget = MathF.Round(fixedPosition[axis]);
+
+                // already on pixel grid
+                if (positionTarget == fixedPosition[axis]) { continue; }
+
+                displacement[axis] += MovementTowards(fixedPosition[axis], positionTarget, rolloverSpeed);
+            }
+            else // coast
+            {
+                // get predicted tick count till static and the final position
+                PredictStoppingPositionAndTime(fixedPosition[axis], wishVelocity[axis == 0 ? 1 : 0], velocity, axis,
+                    out int ticksTillStatic, out float finalPosition);
+
+                // manipulate data to get final position frame delta
+                float finalPositionTarget = MathF.Round(finalPosition);
+                float finalPositionDelta = finalPositionTarget - finalPosition;
+                float finalPositionFrameDelta = finalPositionDelta / ticksTillStatic;
+
+                displacement[axis] +=
+                    MathF.Abs(finalPositionFrameDelta) > rolloverSpeed ?
+                    rolloverSpeed * MathF.Sign(finalPositionFrameDelta) :
+                    finalPositionFrameDelta;
+            }
+        }
     }
 
     static float? ApplySubtickDisplacementNudge(Vector2 unnudgedSubtickDisplacement, Vector2 wishVelocity, AABBHit hit, bool horizontalCollision, Point closestTileHit, NaturalSize colliderSize)
@@ -292,9 +322,6 @@ class PlayerActor : Singleton<PlayerActor>
         Rollover();
 
         ApplyDisplacement();
-
-        // old vars
-        oldVelocity = velocity;
 
         // share data
         lock (SharedDataLock)
