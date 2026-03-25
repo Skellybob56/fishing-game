@@ -54,7 +54,7 @@ class PlayerActor : Singleton<PlayerActor>
 
     // shared
     public Lock SharedDataLock { get; } = new();
-    public Vector2 SharedPosition { get; private set; } // todo: consider making setters and getters require lock
+    public Vector2 SharedPosition { get; private set; }
     public Vector2 SharedOldPosition { get; private set; }
 
     private PlayerActor(Vector2 position)
@@ -68,6 +68,9 @@ class PlayerActor : Singleton<PlayerActor>
     {
         // todo: make rollover start applying when the player stops actively moving in that axis.
         // cont. apply rollover gently to account for predicted player location if the player does not apply any movement on that axis
+        // cont. check if not moving and not wishing to move per axis and if so apply movement towards nearest grid line
+        // cont. check if moving but not wishing to move per axis and if so, predict slow down length in ticks and the final location of
+        //     the player and then apply a small modification to displacement to aim to land the player on a grid line (can be cleaned by the static player code)
 
         Vector2 truncated = new(MathF.Truncate(fixedPosition.X), MathF.Truncate(fixedPosition.Y));
         Vector2 fract = fixedPosition - truncated;
