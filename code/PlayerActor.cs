@@ -42,7 +42,7 @@ class PlayerActor : Singleton<PlayerActor>
         );
 
     // fixed
-    Vector2 fixedPosition; // todo: remove word 'fixed' from this variable name (vestigial from when renderPosition was in the same class)
+    Vector2 position;
     Vector2 velocity = Vector2.Zero;
     Vector2 wishVelocity;
     Vector2 displacement;
@@ -55,7 +55,7 @@ class PlayerActor : Singleton<PlayerActor>
 
     private PlayerActor(Vector2 position)
     {
-        fixedPosition = position;
+        this.position = position;
         SharedPosition = position;
         SharedOldPosition = position;
     }
@@ -96,7 +96,7 @@ class PlayerActor : Singleton<PlayerActor>
         }
 
         // todo: bug: the rollover makes it frustratingly difficult to move a single pixel
-        // cont. in coast: if ((finalPosition - fixedPosition[axis]) + distanceMovedSinceStartOfCoast < 1f) then force finalPositionTarget to round in favour of velocity direction
+        // cont. in coast: if ((finalPosition - position[axis]) + distanceMovedSinceStartOfCoast < 1f) then force finalPositionTarget to round in favour of velocity direction
         // cont. if this isn't strong enough, the 1f constant can be increased to make this apply to small movements of greater than one pixel
         //       (though, this may make small movements feel hard to control)
         // cont. if the fixes above don't solve the problem, you can also see in static if we have become static out of a coast where we were forcing a round in favour of velocity
@@ -112,17 +112,17 @@ class PlayerActor : Singleton<PlayerActor>
 
             if (velocity[axis] == 0) // static
             {
-                float positionTarget = MathF.Round(fixedPosition[axis]);
+                float positionTarget = MathF.Round(position[axis]);
 
                 // already on pixel grid
-                if (positionTarget == fixedPosition[axis]) { continue; }
+                if (positionTarget == position[axis]) { continue; }
 
-                displacement[axis] += MovementTowards(fixedPosition[axis], positionTarget, rolloverSpeed);
+                displacement[axis] += MovementTowards(position[axis], positionTarget, rolloverSpeed);
             }
             else // coast
             {
                 // get predicted tick count till static and the final position
-                PredictStoppingPositionAndTime(fixedPosition[axis], wishVelocity[axis == 0 ? 1 : 0], velocity, axis,
+                PredictStoppingPositionAndTime(position[axis], wishVelocity[axis == 0 ? 1 : 0], velocity, axis,
                     out int ticksTillStatic, out float finalPosition);
 
                 // manipulate data to get final position frame delta
@@ -204,7 +204,7 @@ class PlayerActor : Singleton<PlayerActor>
 
             // measure the tiles the player is colliding with excluding the displacement
             Rectangle currentCollider = new(
-                (fixedPosition + collider.position) / TileSize,
+                (position + collider.position) / TileSize,
                 (Vector2)collider.size / (Vector2)TileSize
                 );
             NaturalRectangle currentCollidingTiles = NaturalRectangle.ExpansiveRound(currentCollider, false); // use open intervals as the playerActor is not on tiles they are touching
@@ -216,7 +216,7 @@ class PlayerActor : Singleton<PlayerActor>
 
             // if the potentialCollidingTiles set is equal to the currentCollidingTiles set then just add displacement and return
             if (currentCollidingTiles == potentialCollidingTiles)
-            { fixedPosition += subtickDisplacement; return; }
+            { position += subtickDisplacement; return; }
 
             closestHit = null;
             // iterate on each potentialCollidingTile
@@ -242,7 +242,7 @@ class PlayerActor : Singleton<PlayerActor>
                 }
             }
             if (!closestHit.HasValue) // no intersection
-            { fixedPosition += subtickDisplacement; return; }
+            { position += subtickDisplacement; return; }
 
             AABBHit closestAABBHit = closestHit.Value.closestAABBHit;
             Point closestTileHit = closestHit.Value.closestTileHit;
@@ -257,7 +257,7 @@ class PlayerActor : Singleton<PlayerActor>
             velocity = velocity.MoveTowards(velocity.ApplyNormal(closestAABBHit.collisionNormal), collisionVelocityCost);
 
             // move to collision intersection
-            fixedPosition = closestAABBHit.intersectionPoint * TileSize - collider.position;
+            position = closestAABBHit.intersectionPoint * TileSize - collider.position;
 
             // use the initial displacement to produce new displacement
             subtickDisplacement = displacement * remainingTime;
@@ -327,7 +327,7 @@ class PlayerActor : Singleton<PlayerActor>
         lock (SharedDataLock)
         {
             SharedOldPosition = SharedPosition;
-            SharedPosition = fixedPosition;
+            SharedPosition = position;
         }
     }
 }
