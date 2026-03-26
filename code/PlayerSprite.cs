@@ -12,6 +12,7 @@ class PlayerSprite : Singleton<PlayerSprite>
     readonly NaturalSize spriteSize = new(16, 16);
 
     PlayerActor playerActor;
+    CardinalDirection facingDirection;
     Vector2 renderPosition;
     Vector2 renderOldPosition;
     int oldCurrentInterpTick = -1;
@@ -19,17 +20,30 @@ class PlayerSprite : Singleton<PlayerSprite>
     private PlayerSprite(PlayerActor playerActor)
     {
         this.playerActor = playerActor;
-        UpdateSharedData();
+        LoadSharedData();
     }
 
-    void UpdateSharedData()
+    void LoadSharedData()
     {
         lock (playerActor.SharedDataLock)
         {
             renderPosition = playerActor.SharedPosition;
             renderOldPosition = playerActor.SharedOldPosition;
+            facingDirection = playerActor.SharedFacingDirection;
         }
         oldCurrentInterpTick = Engine.CurrentInterpTick;
+    }
+
+    Vector2 GetAnimationSprite()
+    {
+        return facingDirection switch
+        {
+            CardinalDirection.Up => new(0, 0),
+            CardinalDirection.Down => new(0, 1),
+            CardinalDirection.Left => new(0, 2),
+            CardinalDirection.Right => new(0, 3),
+            _ => throw new ArgumentOutOfRangeException(nameof(facingDirection), $"{nameof(CardinalDirection)} variables must be within the four cardinal directions")
+        };
     }
 
     public void Render(Vector2 screenPosition, float graphicalScale)
@@ -37,14 +51,14 @@ class PlayerSprite : Singleton<PlayerSprite>
         // load data
         if (oldCurrentInterpTick != Engine.CurrentInterpTick)
         {
-            UpdateSharedData();
+            LoadSharedData();
         }
 
         Vector2 renderInterpolatedPosition = Vector2.Lerp(renderOldPosition, renderPosition, Engine.InterpT);
 
         DrawTexturePro(
             Engine.playerTexture,
-            new(0, spriteSize.height, spriteSize), // todo: replace 0, spriteSize.height with animation code
+            new(GetAnimationSprite() * spriteSize, spriteSize), // todo: replace 0, spriteSize.height with animation code
             new(renderInterpolatedPosition * graphicalScale + screenPosition, (Vector2)spriteSize * graphicalScale),
             Vector2.Zero, 0f, Color.White
             );

@@ -46,18 +46,24 @@ class PlayerActor : Singleton<PlayerActor>
     Vector2 velocity = Vector2.Zero;
     Vector2 wishVelocity;
     Vector2 displacement;
+    CardinalDirection facingDirection;
+
     NudgeFlags nudgeFlags = NudgeFlags.NoNudge;
 
     // shared
     public Lock SharedDataLock { get; } = new();
     public Vector2 SharedPosition { get; private set; }
     public Vector2 SharedOldPosition { get; private set; }
+    public CardinalDirection SharedFacingDirection { get; private set; }
 
     private PlayerActor(Vector2 position)
     {
         this.position = position;
         SharedPosition = position;
         SharedOldPosition = position;
+
+        facingDirection = CardinalDirection.Down;
+        SharedFacingDirection = facingDirection;
     }
 
     void Rollover()
@@ -94,13 +100,6 @@ class PlayerActor : Singleton<PlayerActor>
                 // </snippet from FixedUpdate() >
             }
         }
-
-        // todo: bug: the rollover makes it frustratingly difficult to move a single pixel
-        // cont. in coast: if ((finalPosition - position[axis]) + distanceMovedSinceStartOfCoast < 1f) then force finalPositionTarget to round in favour of velocity direction
-        // cont. if this isn't strong enough, the 1f constant can be increased to make this apply to small movements of greater than one pixel
-        //       (though, this may make small movements feel hard to control)
-        // cont. if the fixes above don't solve the problem, you can also see in static if we have become static out of a coast where we were forcing a round in favour of velocity
-        //       direction. if this is the case, static should also force a round in favour of that direction
 
         // todo: bug: rollover seems to overshoot and bounce-back frequently when simply moving on one axis and stopping.
 
@@ -316,6 +315,14 @@ class PlayerActor : Singleton<PlayerActor>
             velocity = velocity.MoveTowards(wishVelocity, counterAcceleration);
         }
 
+        // update player facing direction
+        if (wishVelocity != Vector2.Zero)
+        {
+            if (MathF.Abs(wishVelocity.X) >= MathF.Abs(wishVelocity.Y))
+            { facingDirection = wishVelocity.X > 0? CardinalDirection.Right : CardinalDirection.Left; }
+            else { facingDirection = wishVelocity.Y > 0? CardinalDirection.Down : CardinalDirection.Up; }
+        }
+
         displacement = velocity;
 
         // set displacement to shift player onto pixel grid when stationary
@@ -328,6 +335,7 @@ class PlayerActor : Singleton<PlayerActor>
         {
             SharedOldPosition = SharedPosition;
             SharedPosition = position;
+            SharedFacingDirection = facingDirection;
         }
     }
 }
