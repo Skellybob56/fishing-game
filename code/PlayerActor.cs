@@ -28,10 +28,10 @@ class PlayerActor : Singleton<PlayerActor>
 
     // consts
     const float topSpeed = 1f;
-    const float acceleration = 0.1f;
-    const float deceleration = 0.2f;
-    const float counterAcceleration = 0.3f;
-    const float rolloverSpeed = 0.1f;
+    const float acceleration = 0.2f;
+    const float deceleration = 0.3f;
+    const float counterAcceleration = 0.4f;
+    const float rolloverSpeed = 0.2f;
     const float collisionVelocityCost = 0.2f;
     const float edgeBevelDepth = 0.4f;
     const float maxNudgePortion = 0.1f; // maximum distance of nudge (per frame) caused by edge bevel measured in portion of bevel length

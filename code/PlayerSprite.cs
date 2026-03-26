@@ -36,6 +36,7 @@ class PlayerSprite : Singleton<PlayerSprite>
 
     Vector2 GetAnimationSprite()
     {
+        // todo: add walking animation
         return facingDirection switch
         {
             CardinalDirection.Up => new(0, 0),
@@ -58,7 +59,7 @@ class PlayerSprite : Singleton<PlayerSprite>
 
         DrawTexturePro(
             Engine.playerTexture,
-            new(GetAnimationSprite() * spriteSize, spriteSize), // todo: replace 0, spriteSize.height with animation code
+            new(GetAnimationSprite() * spriteSize, spriteSize),
             new(renderInterpolatedPosition * graphicalScale + screenPosition, (Vector2)spriteSize * graphicalScale),
             Vector2.Zero, 0f, Color.White
             );
