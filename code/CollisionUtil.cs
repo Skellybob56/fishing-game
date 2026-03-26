@@ -3,16 +3,16 @@ using System.Numerics;
 
 namespace FishingGame;
 
-public enum CollisionNormal : byte
+public enum CardinalDirection : byte
 { Up, Down, Left, Right }
 
-public readonly struct AABBHit(float timeTillCollision, float tEdge, Vector2 intersectionPoint, CollisionNormal collisionNormal)
+public readonly struct AABBHit(float timeTillCollision, float tEdge, Vector2 intersectionPoint, CardinalDirection collisionNormal)
 {
     // timeTillCollision is measured assuming that the displacement takes 1 unit of time
     public readonly float timeTillCollision = timeTillCollision;
     public readonly float tEdge = tEdge; // the t value of the intersection on the hit edge from negative towards positive
     public readonly Vector2 intersectionPoint = intersectionPoint;
-    public readonly CollisionNormal collisionNormal = collisionNormal;
+    public readonly CardinalDirection collisionNormal = collisionNormal;
 }
 
 public static class CollisionUtil
@@ -27,7 +27,7 @@ public static class CollisionUtil
     static AABBHit? LineBoxIntersection(Vector2 point, Vector2 displacement, Rectangle box)
     {
         float tMinimum = 0f;
-        CollisionNormal? collisionNormal = null;
+        CardinalDirection? collisionNormal = null;
 
         Vector2 boxMin = box.Position;
         Vector2 boxMax = box.Position + box.Size;
@@ -46,7 +46,7 @@ public static class CollisionUtil
 
             if (tXMinimum >= tMinimum)
             {
-                collisionNormal = displacement.X > 0 ? CollisionNormal.Left : CollisionNormal.Right;
+                collisionNormal = displacement.X > 0 ? CardinalDirection.Left : CardinalDirection.Right;
                 tMinimum = tXMinimum;
             }
         }
@@ -68,7 +68,7 @@ public static class CollisionUtil
 
             if (tYMinimum >= tMinimum)
             {
-                collisionNormal = displacement.Y > 0 ? CollisionNormal.Up : CollisionNormal.Down;
+                collisionNormal = displacement.Y > 0 ? CardinalDirection.Up : CardinalDirection.Down;
                 tMinimum = tYMinimum;
             }
         }
@@ -83,14 +83,14 @@ public static class CollisionUtil
         {
             Vector2 intersectionPoint = point + displacement * tMinimum;
             float tEdge;
-            if (collisionNormal.Value == CollisionNormal.Up || collisionNormal.Value == CollisionNormal.Down)
+            if (collisionNormal.Value == CardinalDirection.Up || collisionNormal.Value == CardinalDirection.Down)
             {
-                intersectionPoint.Y = collisionNormal.Value == CollisionNormal.Up ? boxMin.Y : boxMax.Y;
+                intersectionPoint.Y = collisionNormal.Value == CardinalDirection.Up ? boxMin.Y : boxMax.Y;
                 tEdge = (intersectionPoint.X - boxMin.X) / box.Width;
             }
-            else if (collisionNormal.Value == CollisionNormal.Left || collisionNormal.Value == CollisionNormal.Right)
+            else if (collisionNormal.Value == CardinalDirection.Left || collisionNormal.Value == CardinalDirection.Right)
             {
-                intersectionPoint.X = collisionNormal.Value == CollisionNormal.Left ? boxMin.X : boxMax.X;
+                intersectionPoint.X = collisionNormal.Value == CardinalDirection.Left ? boxMin.X : boxMax.X;
                 tEdge = (intersectionPoint.Y - boxMin.Y) / box.Height;
             }
             else { throw new ArgumentOutOfRangeException(nameof(collisionNormal), "CollisionNormal variables must be Up, Down, Left or Right"); }
@@ -101,15 +101,15 @@ public static class CollisionUtil
         return null;
     }
 
-    public static Vector2 ApplyNormal(this Vector2 direction, CollisionNormal collisionNormal)
+    public static Vector2 ApplyNormal(this Vector2 direction, CardinalDirection collisionNormal)
     {
-        if (collisionNormal == CollisionNormal.Up)
+        if (collisionNormal == CardinalDirection.Up)
         { return direction.Y <= 0f ? direction : new(direction.X, 0); }
-        else if (collisionNormal == CollisionNormal.Down)
+        else if (collisionNormal == CardinalDirection.Down)
         { return direction.Y >= 0f ? direction : new(direction.X, 0); }
-        else if (collisionNormal == CollisionNormal.Left)
+        else if (collisionNormal == CardinalDirection.Left)
         { return direction.X <= 0f ? direction : new(0, direction.Y); }
-        else if (collisionNormal == CollisionNormal.Right)
+        else if (collisionNormal == CardinalDirection.Right)
         { return direction.X >= 0f ? direction : new(0, direction.Y); }
         else { throw new ArgumentOutOfRangeException(nameof(collisionNormal), "CollisionNormal variables must be Up, Down, Left or Right"); }
     }

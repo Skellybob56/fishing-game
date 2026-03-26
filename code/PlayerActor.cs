@@ -143,8 +143,8 @@ class PlayerActor : Singleton<PlayerActor>
         if (hit.tEdge < edgeBevelDepth || hit.tEdge > 1f - edgeBevelDepth)
         {
             int nudgeSign = hit.tEdge > 0.5f ? 1 : -1;
-            int normalSign = hit.collisionNormal == CollisionNormal.Left ||
-                hit.collisionNormal == CollisionNormal.Up ? -1 : 1;
+            int normalSign = hit.collisionNormal == CardinalDirection.Left ||
+                hit.collisionNormal == CardinalDirection.Up ? -1 : 1;
 
             // if player is applying input towards the wall
             if ((horizontalCollision? wishVelocity.X : wishVelocity.Y) * normalSign < 0f)
@@ -264,7 +264,7 @@ class PlayerActor : Singleton<PlayerActor>
 
             // check and apply nudge to round corner if needed (this can only happen once per edge per frame as displacement into a tile is entirely stopped on collision)
             {
-                bool horizontalCollision = closestAABBHit.collisionNormal == CollisionNormal.Left || closestAABBHit.collisionNormal == CollisionNormal.Right;
+                bool horizontalCollision = closestAABBHit.collisionNormal == CardinalDirection.Left || closestAABBHit.collisionNormal == CardinalDirection.Right;
                 float? nudge = ApplySubtickDisplacementNudge(subtickDisplacement, wishVelocity, closestAABBHit, horizontalCollision, closestTileHit, collider.size);
                 if (nudge.HasValue)
                 {
