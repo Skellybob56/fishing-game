@@ -297,9 +297,8 @@ class PlayerActor : Singleton<PlayerActor>
         return wishVelocity.LengthSquared() <= velocity.LengthSquared()? AccelerationMode.Decelerating : AccelerationMode.Accelerating;
     }
 
-    public void FixedUpdate()
+    void UpdateVelocity()
     {
-        wishVelocity = Controller.WishDir * topSpeed;
         AccelerationMode accelerationMode = GetAccelerationMode(wishVelocity, velocity);
 
         if (accelerationMode == AccelerationMode.Accelerating)
@@ -314,14 +313,24 @@ class PlayerActor : Singleton<PlayerActor>
         {
             velocity = velocity.MoveTowards(wishVelocity, counterAcceleration);
         }
+    }
 
-        // update player facing direction
+    void UpdateFacingDirection()
+    {
         if (wishVelocity != Vector2.Zero)
         {
             if (MathF.Abs(wishVelocity.X) >= MathF.Abs(wishVelocity.Y))
-            { facingDirection = wishVelocity.X > 0? CardinalDirection.Right : CardinalDirection.Left; }
-            else { facingDirection = wishVelocity.Y > 0? CardinalDirection.Down : CardinalDirection.Up; }
+            { facingDirection = wishVelocity.X > 0 ? CardinalDirection.Right : CardinalDirection.Left; }
+            else { facingDirection = wishVelocity.Y > 0 ? CardinalDirection.Down : CardinalDirection.Up; }
         }
+    }
+
+    public void FixedUpdate()
+    {
+        wishVelocity = Controller.WishDir * topSpeed;
+
+        UpdateVelocity();
+        UpdateFacingDirection();
 
         displacement = velocity;
 

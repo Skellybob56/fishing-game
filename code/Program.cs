@@ -104,7 +104,8 @@ static partial class Engine
 
         EndTextureMode();
 
-        // todo: make high props that are at a smaller y (above in screen space) to the playerSprite's feet always render on the low render texture
+        // todo: move all prop/sprite rendering to use a centralised system that renders them in order of y (top to bottom in screenspace)
+        // cont. the y location can be different from the tile location of the sprite (for example, overhangs should be understood as being located at the y value below them)
         BeginTextureMode(highRenderTexture);
         ClearBackground(new(0, 0, 0, 0)); // transparent background
 
