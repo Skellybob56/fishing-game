@@ -10,6 +10,7 @@ class Controller : Singleton<Controller>
     { return Register(new Controller()); }
 
     public static Vector2 WishDir { get; private set; }
+    public static bool castRod { get; private set; }
 
     const float leftStickDeadzoneX = 0.2f;
     const float leftStickDeadzoneY = 0.2f;
@@ -53,10 +54,17 @@ class Controller : Singleton<Controller>
         if (WishDir.LengthSquared() > 1f) { WishDir = Vector2.Normalize(WishDir); }
     }
 
+    static void UpdateButtonActions()
+    {
+        castRod = IsMouseButtonPressed(MouseButton.Left) || IsGamepadButtonPressed(gamepad, GamepadButton.RightFaceLeft);
+    }
+
     // not static in order to require that the caller has a reference to the singleton to allow the caller to call this function
     public void FixedUpdate()
     {
         UpdateStickInput();
         UpdateWishDir();
+
+        UpdateButtonActions();
     }
 }
