@@ -55,8 +55,14 @@ partial class PlayerActor : Singleton<PlayerActor>
             float timePassed = (Engine.CurrentTick - creationTick) * Engine.FixedUpdateIntervalF;
             if (timePassed >= collisionTimeDelta) // note: collision can be with the ground or with a wall
             {
-                // todo: check if predicted to land in water and if so update InWater
-                // cont. otherwise, automatically withdraw bobber
+                if (landingInWater)
+                {
+                    InWater = true;
+                }
+                else
+                {
+                    // todo: withdraw bobber
+                }
             }
         }
     }
