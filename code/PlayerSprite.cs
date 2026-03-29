@@ -10,11 +10,13 @@ class PlayerSprite : Singleton<PlayerSprite>
     { return Register(new PlayerSprite(playerActor)); }
 
     readonly NaturalSize spriteSize = new(16, 16);
+    readonly NaturalSize bobberSpriteSize = new(8, 8);
 
     PlayerActor playerActor;
     CardinalDirection facingDirection;
     Vector2 renderPosition;
     Vector2 renderOldPosition;
+    PlayerActor.Bobber? bobber;
     int oldCurrentInterpTick = -1;
 
     private PlayerSprite(PlayerActor playerActor)
@@ -30,6 +32,7 @@ class PlayerSprite : Singleton<PlayerSprite>
             renderPosition = playerActor.SharedPosition;
             renderOldPosition = playerActor.SharedOldPosition;
             facingDirection = playerActor.SharedFacingDirection;
+            bobber = playerActor.SharedBobber;
         }
         oldCurrentInterpTick = Engine.CurrentInterpTick;
     }
@@ -45,6 +48,18 @@ class PlayerSprite : Singleton<PlayerSprite>
             CardinalDirection.Right => new(0, 3),
             _ => throw new ArgumentOutOfRangeException(nameof(facingDirection), $"{nameof(CardinalDirection)} variables must be within the four cardinal directions")
         };
+    }
+
+    void RenderBobber(Vector2 screenPosition, float graphicalScale)
+    {
+        if (!bobber.HasValue) { return; }
+        float currentTick = Engine.CurrentInterpTick + Engine.InterpT;
+        DrawTexturePro(
+            Engine.spritesTexture,
+            new(Vector2.Zero, bobberSpriteSize),
+            new(bobber.Value.GetPosition(currentTick) * graphicalScale + screenPosition, (Vector2)bobberSpriteSize * graphicalScale),
+            Vector2.Zero, 0f, Color.White
+            );
     }
 
     public void Render(Vector2 screenPosition, float graphicalScale)
@@ -63,5 +78,7 @@ class PlayerSprite : Singleton<PlayerSprite>
             new(renderInterpolatedPosition * graphicalScale + screenPosition, (Vector2)spriteSize * graphicalScale),
             Vector2.Zero, 0f, Color.White
             );
+
+        RenderBobber(screenPosition, graphicalScale);
     }
 }

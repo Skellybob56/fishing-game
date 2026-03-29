@@ -72,4 +72,16 @@ public static class Utilities
 
         return output;
     }
+
+    public static Vector2 ToVector2(this CardinalDirection direction)
+    {
+        return direction switch
+        {
+            CardinalDirection.Up => -Vector2.UnitY,
+            CardinalDirection.Down => Vector2.UnitY,
+            CardinalDirection.Left => -Vector2.UnitX,
+            CardinalDirection.Right => Vector2.UnitX,
+            _ => throw new ArgumentOutOfRangeException(nameof(direction), "CollisionNormal variables must be Up, Down, Left or Right"),
+        }
+    }
 }

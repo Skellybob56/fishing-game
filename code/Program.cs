@@ -10,6 +10,7 @@ static partial class Engine
     // assets
     public static readonly Texture2D atlasTexture;
     public static readonly Texture2D playerTexture;
+    public static readonly Texture2D spritesTexture;
 
     // singletons
     static readonly Controller controller;
@@ -49,6 +50,7 @@ static partial class Engine
 
         atlasTexture = LoadTexture("textures/atlas.png");
         playerTexture = LoadTexture("textures/player.png");
+        spritesTexture = LoadTexture("textures/sprites.png");
 
         controller = Controller.Create();
         {

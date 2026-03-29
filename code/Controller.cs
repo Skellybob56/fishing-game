@@ -17,6 +17,7 @@ class Controller : Singleton<Controller>
 
     static int gamepad = 0; // todo: add detection for which gamepad is active
     static Vector2 leftStick;
+    static bool oldCastRodHeld;
 
     static void UpdateStickInput()
     {
@@ -56,7 +57,9 @@ class Controller : Singleton<Controller>
 
     static void UpdateButtonActions()
     {
-        castRod = IsMouseButtonPressed(MouseButton.Left) || IsGamepadButtonPressed(gamepad, GamepadButton.RightFaceLeft);
+        bool castRodHeld = IsMouseButtonDown(MouseButton.Left) || IsGamepadButtonDown(gamepad, GamepadButton.RightFaceLeft);
+        castRod = castRodHeld && !oldCastRodHeld;
+        oldCastRodHeld = castRodHeld;
     }
 
     // not static in order to require that the caller has a reference to the singleton to allow the caller to call this function

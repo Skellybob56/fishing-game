@@ -5,7 +5,7 @@ using static FishingGame.Utilities;
 
 namespace FishingGame;
 
-class PlayerActor : Singleton<PlayerActor>
+partial class PlayerActor : Singleton<PlayerActor>
 {
     enum AccelerationMode : byte
     {
@@ -48,6 +48,8 @@ class PlayerActor : Singleton<PlayerActor>
     Vector2 displacement;
     CardinalDirection facingDirection;
 
+    Bobber? bobber = null; // null if fishing line not cast
+
     NudgeFlags nudgeFlags = NudgeFlags.NoNudge;
 
     // shared
@@ -55,6 +57,7 @@ class PlayerActor : Singleton<PlayerActor>
     public Vector2 SharedPosition { get; private set; }
     public Vector2 SharedOldPosition { get; private set; }
     public CardinalDirection SharedFacingDirection { get; private set; }
+    public Bobber? SharedBobber { get; private set; }
 
     private PlayerActor(Vector2 position)
     {
@@ -325,6 +328,24 @@ class PlayerActor : Singleton<PlayerActor>
         }
     }
 
+    void UpdateBobber()
+    {
+        if (Controller.castRod)
+        {
+            if (bobber is null)
+            {
+                // throw bobber
+                // todo: add control system to set current magic number throwDistance (4f)
+                bobber = new(position, 4f, facingDirection);
+            }
+            else
+            {
+                // return bobber
+                bobber = null;
+            }
+        }
+    }
+
     public void FixedUpdate()
     {
         wishVelocity = Controller.WishDir * topSpeed;
@@ -338,6 +359,8 @@ class PlayerActor : Singleton<PlayerActor>
         Rollover();
 
         ApplyDisplacement();
+
+        UpdateBobber();
 
         // share data
         lock (SharedDataLock)
