@@ -54,10 +54,11 @@ class PlayerSprite : Singleton<PlayerSprite>
     {
         if (!bobber.HasValue) { return; }
         float currentTick = Engine.CurrentInterpTick + Engine.InterpT;
+        Vector2 bobberSpritePosition = (bobber.Value.GetPosition(currentTick) - ((Vector2)bobberSpriteSize / 2f)) * graphicalScale + screenPosition;
         DrawTexturePro(
             Engine.spritesTexture,
             new(Vector2.Zero, bobberSpriteSize),
-            new(bobber.Value.GetPosition(currentTick) * graphicalScale + screenPosition, (Vector2)bobberSpriteSize * graphicalScale),
+            new(bobberSpritePosition, (Vector2)bobberSpriteSize * graphicalScale),
             Vector2.Zero, 0f, Color.White
             );
     }
