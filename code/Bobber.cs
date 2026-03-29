@@ -13,20 +13,20 @@ partial class PlayerActor : Singleton<PlayerActor>
         const float horizontalVelocity = 0.5f; // must be greater than zero
 
         readonly float initialVerticalVelocity;
-        readonly Vector2 origin;
+        readonly Point origin;
         readonly CardinalDirection direction;
         readonly int creationTick;
         readonly float collisionTimeDelta;
         readonly bool landingInWater;
 
-        public Bobber(Vector2 origin, float throwDistance, CardinalDirection direction)
+        public Bobber(Vector2 origin, int throwDistance, CardinalDirection direction)
         {
             // maths based on rearranging the equation:
             // g is gravity, d is throwDistance, s is startHeight, i is initialVerticalVelocity, h is horizontal velocity
             // (g(d/h)^2)/2 + i(d/h) + s = 0
             // which produces this: i = -gd/2h - hs/d
             initialVerticalVelocity = -(gravity * throwDistance) / (2 * horizontalVelocity) - (horizontalVelocity * startHeight) / throwDistance;
-            this.origin = origin;
+            this.origin = Point.RoundToPoint(origin);
             this.direction = direction;
             creationTick = Engine.CurrentTick;
 
