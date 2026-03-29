@@ -43,6 +43,21 @@ public readonly record struct Point(int x, int y)
         return new(a.x, a.y);
     }
 
+    public static Point RoundToPoint(Vector2 v)
+    {
+        return new((int)MathF.Round(v.X), (int)MathF.Round(v.Y));
+    }
+
+    public static Point FloorToPoint(Vector2 v)
+    {
+        return new((int)MathF.Floor(v.X), (int)MathF.Floor(v.Y));
+    }
+
+    public static Point CeilToPoint(Vector2 v)
+    {
+        return new((int)MathF.Ceiling(v.X), (int)MathF.Ceiling(v.Y));
+    }
+
     public override string ToString()
     { return $"<{x}, {y}>"; }
 }
