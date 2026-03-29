@@ -336,7 +336,8 @@ partial class PlayerActor : Singleton<PlayerActor>
             {
                 // throw bobber
                 // todo: add control system to set current magic number throwDistance (4f)
-                bobber = new(position, 4f, facingDirection);
+                bobber = new(position + collider.position + ((Vector2)collider.size / 2f),
+                    4f, facingDirection);
             }
             else
             {
