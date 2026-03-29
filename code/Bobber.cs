@@ -35,13 +35,13 @@ partial class PlayerActor : Singleton<PlayerActor>
 
         public bool InWater { get; private set; } = false;
 
-        float CalculateHeight(float timePassed)
+        readonly float CalculateHeight(float timePassed)
         {
             return (gravity * timePassed * timePassed * 0.5f) + (initialVerticalVelocity * timePassed) + startHeight;
         }
 
         // time is floating point for interpolation
-        public Vector2 GetPosition(float currentTick)
+        public readonly Vector2 GetPosition(float currentTick)
         {
             // todo: make this work when the bobber has landed (and make the transition clean)
             float timePassed = (currentTick - creationTick) * Engine.FixedUpdateIntervalF;
