@@ -21,6 +21,10 @@ partial class PlayerActor : Singleton<PlayerActor>
 
         public Bobber(Vector2 origin, float throwDistance, CardinalDirection direction)
         {
+            // maths based on rearranging the equation:
+            // g is gravity, d is throwDistance, s is startHeight, i is initialVerticalVelocity, h is horizontal velocity
+            // (g(d/h)^2)/2 + i(d/h) + s = 0
+            // which produces this: i = -gd/2h - hs/d
             initialVerticalVelocity = -(gravity * throwDistance) / (2 * horizontalVelocity) - (horizontalVelocity * startHeight) / throwDistance;
             this.origin = origin;
             this.direction = direction;
@@ -29,8 +33,23 @@ partial class PlayerActor : Singleton<PlayerActor>
             // todo: predict if will collide with hilly collision
             // cont. also predict if will land in water to be used in update
             // cont. if there is a collision, shorten collisionTimeDelta to the point of collision and mark landingInWater as false
+
+            bool horizontal = direction.IsHorizontal();
+            Point originTile = Point.FloorToPoint(origin / (Vector2)Utilities.TileSize);
+            int finalTile = (int)MathF.Floor((horizontal ? origin.X : origin.Y) + (direction.Sign() * throwDistance)); // final tile position on moving axis
+
             collisionTimeDelta = throwDistance / horizontalVelocity;
-            landingInWater = true;
+            landingInWater = Engine.PointToCollision(horizontal? new(finalTile, originTile.y) : new(originTile.x, finalTile)) == CollisionType.Wet;
+
+            for (int tile = horizontal ? originTile.x : originTile.y; tile <= finalTile; tile++)
+            {
+                if (Engine.PointToCollision(horizontal ? new(tile, originTile.y) : new(originTile.x, tile)) == CollisionType.Hilly)
+                {
+                    // todo: set collisionTimeDelta
+                    landingInWater = false;
+                    break;
+                }
+            }
         }
 
         public bool InWater { get; private set; } = false;
