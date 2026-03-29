@@ -6,11 +6,11 @@ partial class PlayerActor : Singleton<PlayerActor>
 {
     public struct Bobber
     {
-        // todo: tune values
-        const float startHeight = -0.5f; // must be less than zero
-        const float gravity = 1f; // must be greater than zero
+        // todo: tune constants
+        const float startHeight = -3f; // must be less than zero
+        const float gravity = 48f; // must be greater than zero
         // todo: consider varying horizontal velocity based on throwDistance too
-        const float horizontalVelocity = 0.5f; // must be greater than zero
+        const float horizontalVelocity = 24f; // must be greater than zero
 
         readonly float initialVerticalVelocity;
         readonly Point origin;
