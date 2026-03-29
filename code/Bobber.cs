@@ -43,8 +43,8 @@ partial class PlayerActor : Singleton<PlayerActor>
         // time is floating point for interpolation
         public readonly Vector2 GetPosition(float currentTick)
         {
-            // todo: make this work when the bobber has landed (and make the transition clean)
             float timePassed = (currentTick - creationTick) * Engine.FixedUpdateIntervalF;
+            timePassed = MathF.Min(timePassed, collisionTimeDelta); // freezes interpolation at collision point
             return (direction.ToVector2() * timePassed * horizontalVelocity) +
                 new Vector2(0f, CalculateHeight(timePassed)) + origin;
         }
