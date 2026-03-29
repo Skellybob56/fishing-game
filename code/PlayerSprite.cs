@@ -9,8 +9,8 @@ class PlayerSprite : Singleton<PlayerSprite>
     public static PlayerSprite Create(PlayerActor playerActor)
     { return Register(new PlayerSprite(playerActor)); }
 
-    readonly NaturalSize spriteSize = new(16, 16);
-    readonly NaturalSize bobberSpriteSize = new(8, 8);
+    public static readonly NaturalSize spriteSize = new(16, 16);
+    static readonly NaturalSize bobberSpriteSize = new(8, 8);
 
     PlayerActor playerActor;
     CardinalDirection facingDirection;
