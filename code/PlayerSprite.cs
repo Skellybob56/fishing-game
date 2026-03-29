@@ -63,14 +63,8 @@ class PlayerSprite : Singleton<PlayerSprite>
             );
     }
 
-    public void Render(Vector2 screenPosition, float graphicalScale)
+    void RenderPlayer(Vector2 screenPosition, float graphicalScale)
     {
-        // load data
-        if (oldCurrentInterpTick != Engine.CurrentInterpTick)
-        {
-            LoadSharedData();
-        }
-
         Vector2 renderInterpolatedPosition = Vector2.Lerp(renderOldPosition, renderPosition, Engine.InterpT);
 
         DrawTexturePro(
@@ -79,7 +73,18 @@ class PlayerSprite : Singleton<PlayerSprite>
             new(renderInterpolatedPosition * graphicalScale + screenPosition, (Vector2)spriteSize * graphicalScale),
             Vector2.Zero, 0f, Color.White
             );
+    }
+
+    public void Render(Vector2 screenPosition, float graphicalScale)
+    {
+        // load data
+        if (oldCurrentInterpTick != Engine.CurrentInterpTick)
+        {
+            LoadSharedData();
+        }
 
         RenderBobber(screenPosition, graphicalScale);
+
+        RenderPlayer(screenPosition, graphicalScale);
     }
 }
