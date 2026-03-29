@@ -81,7 +81,31 @@ public static class Utilities
             CardinalDirection.Down => Vector2.UnitY,
             CardinalDirection.Left => -Vector2.UnitX,
             CardinalDirection.Right => Vector2.UnitX,
-            _ => throw new ArgumentOutOfRangeException(nameof(direction), "CollisionNormal variables must be Up, Down, Left or Right"),
-        }
+            _ => throw new ArgumentOutOfRangeException(nameof(direction), "CollisionNormal variables must be Up, Down, Left or Right")
+        };
+    }
+
+    public static bool IsHorizontal(this CardinalDirection direction)
+    {
+        return direction switch
+        {
+            CardinalDirection.Up => false,
+            CardinalDirection.Down => false,
+            CardinalDirection.Left => true,
+            CardinalDirection.Right => true,
+            _ => throw new ArgumentOutOfRangeException(nameof(direction), "CollisionNormal variables must be Up, Down, Left or Right")
+        };
+    }
+
+    public static int Sign(this CardinalDirection direction)
+    {
+        return direction switch
+        {
+            CardinalDirection.Up => -1,
+            CardinalDirection.Down => 1,
+            CardinalDirection.Left => -1,
+            CardinalDirection.Right => 1,
+            _ => throw new ArgumentOutOfRangeException(nameof(direction), "CollisionNormal variables must be Up, Down, Left or Right")
+        };
     }
 }
