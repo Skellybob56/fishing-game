@@ -346,6 +346,17 @@ partial class PlayerActor : Singleton<PlayerActor>
         }
     }
 
+    void SaveToSharedData()
+    {
+        lock (SharedDataLock)
+        {
+            SharedOldPosition = SharedPosition;
+            SharedPosition = position;
+            SharedFacingDirection = facingDirection;
+            SharedBobber = bobber;
+        }
+    }
+
     public void FixedUpdate()
     {
         wishVelocity = Controller.WishDir * topSpeed;
@@ -362,12 +373,6 @@ partial class PlayerActor : Singleton<PlayerActor>
 
         UpdateBobber();
 
-        // share data
-        lock (SharedDataLock)
-        {
-            SharedOldPosition = SharedPosition;
-            SharedPosition = position;
-            SharedFacingDirection = facingDirection;
-        }
+        SaveToSharedData();
     }
 }
