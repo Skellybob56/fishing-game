@@ -16,37 +16,50 @@ partial class PlayerActor : Singleton<PlayerActor>
         readonly Point origin;
         readonly CardinalDirection direction;
         readonly int creationTick;
+        readonly float landingTimeDelta;
         readonly float collisionTimeDelta;
         readonly bool landingInWater;
 
-        public Bobber(Vector2 origin, int throwDistance, CardinalDirection direction)
+        public Bobber(Point origin, int throwDistance, CardinalDirection direction)
         {
             // maths based on rearranging the equation:
             // g is gravity, d is throwDistance, s is startHeight, i is initialVerticalVelocity, h is horizontal velocity
             // (g(d/h)^2)/2 + i(d/h) + s = 0
             // which produces this: i = -gd/2h - hs/d
             initialVerticalVelocity = -(gravity * throwDistance) / (2 * horizontalVelocity) - (horizontalVelocity * startHeight) / throwDistance;
-            this.origin = Point.RoundToPoint(origin);
+            this.origin = origin;
             this.direction = direction;
             creationTick = Engine.CurrentTick;
 
-            // todo: predict if will collide with hilly collision
-            // cont. also predict if will land in water to be used in update
-            // cont. if there is a collision, shorten collisionTimeDelta to the point of collision and mark landingInWater as false
-
             bool horizontal = direction.IsHorizontal();
+            int directionSign = direction.Sign();
             Point originTile = Point.FloorToPoint(origin / (Vector2)Utilities.TileSize);
-            int finalTile = (int)MathF.Floor((horizontal ? origin.X : origin.Y) + (direction.Sign() * throwDistance)); // final tile position on moving axis
 
-            collisionTimeDelta = throwDistance / horizontalVelocity;
-            landingInWater = Engine.PointToCollision(horizontal? new(finalTile, originTile.y) : new(originTile.x, finalTile)) == CollisionType.Wet;
+            // on moving axis
+            int tileSize = horizontal ? Utilities.TileSize.width : Utilities.TileSize.height;
+            int startingPos = horizontal ? origin.x : origin.y;
+            int startingTile = (int)MathF.Floor(startingPos / (float)tileSize);
+            int finalPos = startingPos + (directionSign * throwDistance);
+            int finalTile = (int)MathF.Floor(finalPos / (float)tileSize);
 
-            for (int tile = horizontal ? originTile.x : originTile.y; tile <= finalTile; tile++)
+            int fullTileOffset = Math.Abs(finalTile - startingTile);
+
+            landingTimeDelta = throwDistance / horizontalVelocity;
+            collisionTimeDelta = landingTimeDelta;
+            landingInWater = Engine.PointToCollision(horizontal? finalTile : originTile.x, horizontal ? originTile.y : finalTile) == CollisionType.Wet;
+
+            // todo: widen the bobber collider to be 2 pixels wide (rather than just a point)
+            for (int tileOffset = 0; tileOffset <= fullTileOffset; tileOffset++)
             {
-                if (Engine.PointToCollision(horizontal ? new(tile, originTile.y) : new(originTile.x, tile)) == CollisionType.Hilly)
+                int tile = startingTile + (directionSign * tileOffset);
+                if (Engine.PointToCollision(horizontal ? tile : originTile.x, horizontal ? originTile.y : tile) == CollisionType.Hilly)
                 {
-                    // todo: set collisionTimeDelta
-                    landingInWater = false;
+                    int intersectionPoint = (tile + (direction.IsPositive() ? 0 : 1)) * tileSize;
+                    collisionTimeDelta = MathF.Abs(intersectionPoint - startingPos) / horizontalVelocity;
+
+                    // check to see if the point before the hit point was water, if so, then water is allowed
+                    tile -= directionSign;
+                    landingInWater = Engine.PointToCollision(horizontal ? tile : originTile.x, horizontal ? originTile.y : tile) == CollisionType.Wet;
                     break;
                 }
             }
@@ -63,16 +76,17 @@ partial class PlayerActor : Singleton<PlayerActor>
         public readonly Vector2 GetPosition(float currentTick)
         {
             float timePassed = (currentTick - creationTick) * Engine.FixedUpdateIntervalF;
-            timePassed = MathF.Min(timePassed, collisionTimeDelta); // freezes interpolation at collision point
-            return (direction.ToVector2() * timePassed * horizontalVelocity) +
-                new Vector2(0f, CalculateHeight(timePassed)) + origin;
+            float heightTimePassed = MathF.Min(timePassed, landingTimeDelta); // freezes height interpolation at landing point
+            float horizontalTimePassed = MathF.Min(timePassed, collisionTimeDelta); // freezes horizontal interpolation at collision point
+            return (direction.ToVector2() * horizontalTimePassed * horizontalVelocity) +
+                new Vector2(0f, CalculateHeight(heightTimePassed)) + origin;
         }
 
         public void FixedUpdate()
         {
             if (InWater) { return; }
             float timePassed = (Engine.CurrentTick - creationTick) * Engine.FixedUpdateIntervalF;
-            if (timePassed >= collisionTimeDelta) // note: collision can be with the ground or with a wall
+            if (timePassed >= landingTimeDelta)
             {
                 if (landingInWater)
                 {
