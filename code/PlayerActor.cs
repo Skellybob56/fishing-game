@@ -49,7 +49,7 @@ partial class PlayerActor : Singleton<PlayerActor>
     CardinalDirection facingDirection;
 
     BobberProjectile? bobber = null; // null if fishing line not cast
-    bool bobberInWater = false;
+    BobberState bobberState = BobberState.Withdrawn;
 
     NudgeFlags nudgeFlags = NudgeFlags.NoNudge;
 
@@ -339,16 +339,25 @@ partial class PlayerActor : Singleton<PlayerActor>
                 // todo: add control system to set current magic number throwDistance (24)
                 bobber = new(Point.RoundToPoint(position + collider.position + ((Vector2)collider.size / 2f)),
                     24, facingDirection);
+                bobberState = BobberState.InAir;
             }
             else
             {
                 // return bobber
                 bobber = null;
+                bobberState = BobberState.Withdrawn;
             }
         }
         if (bobber is not null)
         {
-            bobberInWater = bobber.Value.FixedUpdate();
+            BobberState nextBobberState = bobber.Value.FixedUpdate();
+
+            if (nextBobberState == BobberState.Withdrawn)
+            {
+                bobber = null;
+            }
+
+            bobberState = nextBobberState;
         }
     }
 

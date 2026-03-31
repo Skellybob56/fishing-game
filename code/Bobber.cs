@@ -4,6 +4,9 @@ namespace FishingGame;
 
 partial class PlayerActor : Singleton<PlayerActor>
 {
+    public enum BobberState : byte
+    { Withdrawn, InAir, InWater }
+
     public readonly struct BobberProjectile
     {
         // todo: tune constants
@@ -80,22 +83,20 @@ partial class PlayerActor : Singleton<PlayerActor>
                 new Vector2(0f, CalculateHeight(heightTimePassed)) + origin;
         }
 
-        public bool FixedUpdate()
+        public BobberState FixedUpdate()
         {
             float timePassed = (Engine.CurrentTick - creationTick) * Engine.FixedUpdateIntervalF;
             if (timePassed >= landingTimeDelta)
             {
                 if (landingInWater)
                 {
-                    return true;
+                    return BobberState.InWater;
                 }
-                else
-                {
-                    // todo: withdraw bobber
-                }
+
+                return BobberState.Withdrawn;
             }
 
-            return false;
+            return BobberState.InAir;
         }
     }
 }
