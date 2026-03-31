@@ -97,6 +97,17 @@ public static class Utilities
         };
     }
 
+    public static bool IsPositive(this CardinalDirection direction)
+    {
+        return direction switch
+        {
+            CardinalDirection.Up => false,
+            CardinalDirection.Down => true,
+            CardinalDirection.Left => false,
+            CardinalDirection.Right => true,
+            _ => throw new ArgumentOutOfRangeException(nameof(direction), "CollisionNormal variables must be Up, Down, Left or Right")
+        };
+    }
     public static int Sign(this CardinalDirection direction)
     {
         return direction switch
