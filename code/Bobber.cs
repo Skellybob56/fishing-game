@@ -68,7 +68,7 @@ partial class PlayerActor : Singleton<PlayerActor>
                 new Vector2(0f, CalculateHeight(timePassed)) + origin;
         }
 
-        public void Update()
+        public void FixedUpdate()
         {
             if (InWater) { return; }
             float timePassed = (Engine.CurrentTick - creationTick) * Engine.FixedUpdateIntervalF;

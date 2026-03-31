@@ -345,6 +345,10 @@ partial class PlayerActor : Singleton<PlayerActor>
                 bobber = null;
             }
         }
+        if (bobber is not null)
+        {
+            bobber.Value.FixedUpdate();
+        }
     }
 
     void SaveToSharedData()
