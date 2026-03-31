@@ -4,7 +4,7 @@ namespace FishingGame;
 
 partial class PlayerActor : Singleton<PlayerActor>
 {
-    public struct Bobber
+    public readonly struct BobberProjectile
     {
         // todo: tune constants
         const float startHeight = -3f; // must be less than zero
@@ -20,7 +20,7 @@ partial class PlayerActor : Singleton<PlayerActor>
         readonly float collisionTimeDelta;
         readonly bool landingInWater;
 
-        public Bobber(Point origin, int throwDistance, CardinalDirection direction)
+        public BobberProjectile(Point origin, int throwDistance, CardinalDirection direction)
         {
             // maths based on rearranging the equation:
             // g is gravity, d is throwDistance, s is startHeight, i is initialVerticalVelocity, h is horizontal velocity
@@ -65,15 +65,13 @@ partial class PlayerActor : Singleton<PlayerActor>
             }
         }
 
-        public bool InWater { get; private set; } = false;
-
-        readonly float CalculateHeight(float timePassed)
+        float CalculateHeight(float timePassed)
         {
             return (gravity * timePassed * timePassed * 0.5f) + (initialVerticalVelocity * timePassed) + startHeight;
         }
 
         // time is floating point for interpolation
-        public readonly Vector2 GetPosition(float currentTick)
+        public Vector2 GetPosition(float currentTick)
         {
             float timePassed = (currentTick - creationTick) * Engine.FixedUpdateIntervalF;
             float heightTimePassed = MathF.Min(timePassed, landingTimeDelta); // freezes height interpolation at landing point
@@ -82,21 +80,22 @@ partial class PlayerActor : Singleton<PlayerActor>
                 new Vector2(0f, CalculateHeight(heightTimePassed)) + origin;
         }
 
-        public void FixedUpdate()
+        public bool FixedUpdate()
         {
-            if (InWater) { return; }
             float timePassed = (Engine.CurrentTick - creationTick) * Engine.FixedUpdateIntervalF;
             if (timePassed >= landingTimeDelta)
             {
                 if (landingInWater)
                 {
-                    InWater = true;
+                    return true;
                 }
                 else
                 {
                     // todo: withdraw bobber
                 }
             }
+
+            return false;
         }
     }
 }

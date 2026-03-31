@@ -16,7 +16,7 @@ class PlayerSprite : Singleton<PlayerSprite>
     CardinalDirection facingDirection;
     Vector2 renderPosition;
     Vector2 renderOldPosition;
-    PlayerActor.Bobber? bobber;
+    PlayerActor.BobberProjectile? bobber;
     int oldCurrentInterpTick = -1;
 
     private PlayerSprite(PlayerActor playerActor)

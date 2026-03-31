@@ -48,7 +48,8 @@ partial class PlayerActor : Singleton<PlayerActor>
     Vector2 displacement;
     CardinalDirection facingDirection;
 
-    Bobber? bobber = null; // null if fishing line not cast
+    BobberProjectile? bobber = null; // null if fishing line not cast
+    bool bobberInWater = false;
 
     NudgeFlags nudgeFlags = NudgeFlags.NoNudge;
 
@@ -57,7 +58,7 @@ partial class PlayerActor : Singleton<PlayerActor>
     public Vector2 SharedPosition { get; private set; }
     public Vector2 SharedOldPosition { get; private set; }
     public CardinalDirection SharedFacingDirection { get; private set; }
-    public Bobber? SharedBobber { get; private set; }
+    public BobberProjectile? SharedBobber { get; private set; }
 
     private PlayerActor(Vector2 position)
     {
@@ -347,7 +348,7 @@ partial class PlayerActor : Singleton<PlayerActor>
         }
         if (bobber is not null)
         {
-            bobber.Value.FixedUpdate();
+            bobberInWater = bobber.Value.FixedUpdate();
         }
     }
 
