@@ -48,8 +48,7 @@ partial class PlayerActor : Singleton<PlayerActor>
     Vector2 displacement;
     CardinalDirection facingDirection;
 
-    BobberProjectile? bobber = null; // null if fishing line not cast
-    BobberState bobberState = BobberState.Withdrawn;
+    (BobberProjectile? Projectile, BobberState State) bobber = (null, BobberState.Withdrawn); // null if fishing line not cast
 
     NudgeFlags nudgeFlags = NudgeFlags.NoNudge;
 
@@ -58,7 +57,7 @@ partial class PlayerActor : Singleton<PlayerActor>
     public Vector2 SharedPosition { get; private set; }
     public Vector2 SharedOldPosition { get; private set; }
     public CardinalDirection SharedFacingDirection { get; private set; }
-    public BobberProjectile? SharedBobber { get; private set; }
+    public (BobberProjectile? Projectile, BobberState State) SharedBobber { get; private set; }
 
     private PlayerActor(Vector2 position)
     {
@@ -303,7 +302,7 @@ partial class PlayerActor : Singleton<PlayerActor>
 
     Vector2 GetWishVelocity()
     {
-        if (bobberState != BobberState.Withdrawn) { return Vector2.Zero; }
+        if (bobber.State != BobberState.Withdrawn) { return Vector2.Zero; }
         else { return Controller.WishDir * topSpeed; }
     }
 
@@ -339,33 +338,31 @@ partial class PlayerActor : Singleton<PlayerActor>
     {
         if (Controller.castRod)
         {
-            if (bobber is null)
+            if (bobber.Projectile is null)
             {
                 // throw bobber
                 // todo: add control system to set current magic number throwDistance (24)
-                bobber = new(Point.RoundToPoint(position + collider.Position + ((Vector2)collider.Size / 2f)),
+                bobber.Projectile = new(Point.RoundToPoint(position + collider.Position + ((Vector2)collider.Size / 2f)),
                     24, facingDirection);
-                bobberState = BobberState.InAir;
+                bobber.State = BobberState.InAir;
             }
             else
             {
                 // return bobber
-                bobber = null;
-                bobberState = BobberState.Withdrawn;
+                bobber.Projectile = null;
+                bobber.State = BobberState.Withdrawn;
             }
         }
-        if (bobber is not null)
+        if (bobber.Projectile is not null)
         {
-            BobberState nextBobberState = bobber.Value.FixedUpdate();
+            BobberState nextBobberState = bobber.Projectile.Value.FixedUpdate();
 
-            // todo: name bobber to bobberProjectile and add a bobber visual struct to send to PlayerSprite
-            // cont. from here, also set bobberProjectile to null if nextBobberState is in water
             if (nextBobberState == BobberState.Withdrawn)
             {
-                bobber = null;
+                bobber.Projectile = null;
             }
 
-            bobberState = nextBobberState;
+            bobber.State = nextBobberState;
         }
     }
 

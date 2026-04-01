@@ -1,6 +1,7 @@
 ﻿using Raylib_cs;
-using static Raylib_cs.Raylib;
 using System.Numerics;
+using static FishingGame.PlayerActor;
+using static Raylib_cs.Raylib;
 
 namespace FishingGame;
 
@@ -16,7 +17,7 @@ class PlayerSprite : Singleton<PlayerSprite>
     CardinalDirection facingDirection;
     Vector2 renderPosition;
     Vector2 renderOldPosition;
-    PlayerActor.BobberProjectile? bobber;
+    (BobberProjectile? Projectile, BobberState State) bobber;
     int oldCurrentInterpTick = -1;
 
     private PlayerSprite(PlayerActor playerActor)
@@ -52,9 +53,9 @@ class PlayerSprite : Singleton<PlayerSprite>
 
     void RenderBobber(Vector2 screenPosition, float graphicalScale)
     {
-        if (!bobber.HasValue) { return; }
+        if (!bobber.Projectile.HasValue) { return; }
         float currentTick = Engine.CurrentInterpTick + Engine.InterpT;
-        Vector2 bobberSpritePosition = (bobber.Value.GetPosition(currentTick) - ((Vector2)bobberSpriteSize / 2f)) * graphicalScale + screenPosition;
+        Vector2 bobberSpritePosition = (bobber.Projectile.Value.GetPosition(currentTick) - ((Vector2)bobberSpriteSize / 2f)) * graphicalScale + screenPosition;
         DrawTexturePro(
             Engine.SpritesTexture,
             new(Vector2.Zero, bobberSpriteSize),
