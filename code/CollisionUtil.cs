@@ -8,11 +8,11 @@ public enum CardinalDirection : byte
 
 public readonly struct AABBHit(float timeTillCollision, float tEdge, Vector2 intersectionPoint, CardinalDirection collisionNormal)
 {
-    // timeTillCollision is measured assuming that the displacement takes 1 unit of time
-    public readonly float timeTillCollision = timeTillCollision;
-    public readonly float tEdge = tEdge; // the t value of the intersection on the hit edge from negative towards positive
-    public readonly Vector2 intersectionPoint = intersectionPoint;
-    public readonly CardinalDirection collisionNormal = collisionNormal;
+    // TimeTillCollision is measured assuming that the displacement takes 1 unit of time
+    public readonly float TimeTillCollision = timeTillCollision;
+    public readonly float TEdge = tEdge; // the t value of the intersection on the hit edge from negative towards positive
+    public readonly Vector2 IntersectionPoint = intersectionPoint;
+    public readonly CardinalDirection CollisionNormal = collisionNormal;
 }
 
 public static class CollisionUtil

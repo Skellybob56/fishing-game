@@ -8,9 +8,9 @@ namespace FishingGame;
 static partial class Engine
 {
     // assets
-    public static readonly Texture2D atlasTexture;
-    public static readonly Texture2D playerTexture;
-    public static readonly Texture2D spritesTexture;
+    public static readonly Texture2D AtlasTexture;
+    public static readonly Texture2D PlayerTexture;
+    public static readonly Texture2D SpritesTexture;
 
     // singletons
     static readonly Controller controller;
@@ -48,9 +48,9 @@ static partial class Engine
         InitWindow(startScreenWidth, startScreenHeight, "Fishing Game");
         WindowResized();
 
-        atlasTexture = LoadTexture("textures/atlas.png");
-        playerTexture = LoadTexture("textures/player.png");
-        spritesTexture = LoadTexture("textures/sprites.png");
+        AtlasTexture = LoadTexture("textures/atlas.png");
+        PlayerTexture = LoadTexture("textures/player.png");
+        SpritesTexture = LoadTexture("textures/sprites.png");
 
         controller = Controller.Create();
         {
@@ -71,7 +71,7 @@ static partial class Engine
     public static CollisionType PointToCollision(int x, int y)
     { return world.PointToCollision(x, y); }
     public static CollisionType PointToCollision(Point p)
-    { return PointToCollision(p.x, p.y); }
+    { return PointToCollision(p.X, p.Y); }
 
     static void WindowResized()
     {

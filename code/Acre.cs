@@ -5,31 +5,31 @@ namespace FishingGame;
 readonly struct Acre
 {
 
-    public readonly Point position;
-    public readonly CollisionType[] collisionMap;
-    public readonly TileGraphicIndices[] tilemap;
-    public readonly Prop[] lowProps;
-    public readonly Prop[] highProps;
+    public readonly Point Position;
+    public readonly CollisionType[] CollisionMap;
+    public readonly TileGraphicIndices[] Tilemap;
+    public readonly Prop[] LowProps;
+    public readonly Prop[] HighProps;
 
     // tile position to index into stored maps
     static int PointToIndex(int x, int y)
     {
-        return x + (y * World.acreSize.width);
+        return x + (y * World.AcreSize.Width);
     }
     static int PointToIndex(Point pos)
     {
-        return pos.x + (pos.y * World.acreSize.width);
+        return pos.X + (pos.Y * World.AcreSize.Width);
     }
     static int PixelPointToIndex(Point pos)
     {
-        return (pos.x / TileSize.width) + ((pos.y / TileSize.height) * World.acreSize.width);
+        return (pos.X / TileSize.Width) + ((pos.Y / TileSize.Height) * World.AcreSize.Width);
     }
 
     public CollisionType PointToCollision(int x, int y)
     {
-        if (x < 0 || x >= World.acreSize.width || y < 0 || y >= World.acreSize.height)
+        if (x < 0 || x >= World.AcreSize.Width || y < 0 || y >= World.AcreSize.Height)
         { return CollisionType.Walkable; } // collsion out of bounds is walkable
-        return collisionMap[PointToIndex(x, y)];
+        return CollisionMap[PointToIndex(x, y)];
     }
 
     static CollisionType HeightToCollision(TileHeight height)
@@ -42,22 +42,22 @@ readonly struct Acre
     {
         foreach (Prop prop in props)
         {
-            if (prop.collision == null) { continue; }
-            collisionMap[PixelPointToIndex(prop.location)] = (CollisionType)prop.collision;
+            if (prop.Collision == null) { continue; }
+            collisionMap[PixelPointToIndex(prop.Location)] = (CollisionType)prop.Collision;
         }
     }
 
     static CollisionType[] HeightmapToCollisionMap(TileHeight[] heightmap, Prop[] lowProps, Prop[] highProps)
     {
-        CollisionType[] collisionMap = new CollisionType[World.acreSize.width * World.acreSize.height];
+        CollisionType[] collisionMap = new CollisionType[World.AcreSize.Width * World.AcreSize.Height];
 
         // col and row are in heightmap space
-        for (int row = 1; row < World.acreSize.height + 1; row++)
+        for (int row = 1; row < World.AcreSize.Height + 1; row++)
         {
-            for (int col = 1; col < World.acreSize.width + 1; col++)
+            for (int col = 1; col < World.AcreSize.Width + 1; col++)
             {
-                int heightmapIndex = row * (World.acreSize.width + 2) + col;
-                int collisionMapIndex = (row - 1) * World.acreSize.width + (col - 1);
+                int heightmapIndex = row * (World.AcreSize.Width + 2) + col;
+                int collisionMapIndex = (row - 1) * World.AcreSize.Width + (col - 1);
                 collisionMap[collisionMapIndex] = HeightToCollision(heightmap[heightmapIndex]);
             }
         }
@@ -233,7 +233,7 @@ readonly struct Acre
         {
             for (int nCol = -1; nCol <= 1; nCol++)
             {
-                int heightmapIndex = (row + nRow)*(World.acreSize.width+2) + col + nCol;
+                int heightmapIndex = (row + nRow)*(World.AcreSize.Width+2) + col + nCol;
                 neighbourhood[neighbourhoodIndex] = heightmap[heightmapIndex];
                 neighbourhoodIndex++;
             }
@@ -260,14 +260,14 @@ readonly struct Acre
 
     static TileGraphicIndices[] HeightmapToTilemap(TileHeight[] heightmap)
     {
-        TileGraphicIndices[] tilemap = new TileGraphicIndices[World.acreSize.width * World.acreSize.height];
+        TileGraphicIndices[] tilemap = new TileGraphicIndices[World.AcreSize.Width * World.AcreSize.Height];
 
         // col and row are in heightmap space
-        for (int row = 1; row < World.acreSize.height + 1; row++)
+        for (int row = 1; row < World.AcreSize.Height + 1; row++)
         {
-            for (int col = 1; col < World.acreSize.width + 1; col++)
+            for (int col = 1; col < World.AcreSize.Width + 1; col++)
             {
-                int tilemapIndex = (row - 1) * World.acreSize.width + (col - 1);
+                int tilemapIndex = (row - 1) * World.AcreSize.Width + (col - 1);
                 tilemap[tilemapIndex] = HeightmapToTileGraphicIndices(row, col, heightmap);
             }
         }
@@ -296,12 +296,12 @@ readonly struct Acre
         List<Prop> overhangs = [];
 
         // col and row are in heightmap space
-        for (int row = 1; row < World.acreSize.height + 1; row++)
+        for (int row = 1; row < World.AcreSize.Height + 1; row++)
         {
-            for (int col = 1; col < World.acreSize.width + 1; col++)
+            for (int col = 1; col < World.AcreSize.Width + 1; col++)
             {
-                int heightmapIndex = row * (World.acreSize.width + 2) + col;
-                int southHeightmapIndex = heightmapIndex + World.acreSize.width + 2;
+                int heightmapIndex = row * (World.AcreSize.Width + 2) + col;
+                int southHeightmapIndex = heightmapIndex + World.AcreSize.Width + 2;
                 if (heightmap[southHeightmapIndex] >= TileHeight.Hill && heightmap[heightmapIndex] != heightmap[southHeightmapIndex])
                 {
                     byte baseGraphicIndex = heightmap[southHeightmapIndex] == TileHeight.TallHill? TallHillOverlayBaseTextureIndex : HillOverlayBaseTextureIndex;
@@ -315,11 +315,11 @@ readonly struct Acre
                     }
                     else
                     {
-                        NaturalSize halfTileSize = new(TileSize.width / 2, TileSize.height);
-                        Point destination = new((col - 1) * TileSize.width, (row - 1) * TileSize.height);
+                        NaturalSize halfTileSize = new(TileSize.Width / 2, TileSize.Height);
+                        Point destination = new((col - 1) * TileSize.Width, (row - 1) * TileSize.Height);
                         overhangs.Add(new Prop(destination, new NaturalRectangle(GraphicIndexToPoint(leftGraphicIndex), halfTileSize)));
-                        overhangs.Add(new Prop(destination + new Point(TileSize.width / 2, 0),
-                            new NaturalRectangle(GraphicIndexToPoint(rightGraphicIndex) + new Point(TileSize.width / 2, 0), halfTileSize)));
+                        overhangs.Add(new Prop(destination + new Point(TileSize.Width / 2, 0),
+                            new NaturalRectangle(GraphicIndexToPoint(rightGraphicIndex) + new Point(TileSize.Width / 2, 0), halfTileSize)));
                     }
                 }
             }
@@ -329,14 +329,14 @@ readonly struct Acre
 
     public Acre(Point position, TileHeight[] heightmap, List<Prop> lowProps, List<Prop> highProps)
     {
-        if (heightmap.Length != (World.acreSize.width + 2) * (World.acreSize.height + 2))
-        { throw new ArgumentException($"The heightmap array length must be equal to the area described by {nameof(World.acreSize)}", nameof(heightmap)); }
+        if (heightmap.Length != (World.AcreSize.Width + 2) * (World.AcreSize.Height + 2))
+        { throw new ArgumentException($"The heightmap array length must be equal to the area described by {nameof(World.AcreSize)}", nameof(heightmap)); }
 
-        this.lowProps = lowProps.ToArray();
-        this.highProps = highProps.Concat(HeightmapToOverhangs(heightmap)).ToArray();
+        this.LowProps = lowProps.ToArray();
+        this.HighProps = highProps.Concat(HeightmapToOverhangs(heightmap)).ToArray();
 
-        this.position = position;
-        collisionMap = HeightmapToCollisionMap(heightmap, this.lowProps, this.highProps);
-        tilemap = HeightmapToTilemap(heightmap);
+        this.Position = position;
+        CollisionMap = HeightmapToCollisionMap(heightmap, this.LowProps, this.HighProps);
+        Tilemap = HeightmapToTilemap(heightmap);
     }
 }

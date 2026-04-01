@@ -11,7 +11,7 @@ public class World : Singleton<World>
     { return Register(new World()); }
 
     readonly Acre acre;
-    public static readonly NaturalSize acreSize = new(25, 15);
+    public static readonly NaturalSize AcreSize = new(25, 15);
 
     private World()
     {
@@ -79,7 +79,7 @@ public class World : Singleton<World>
     {
         int quad_offset_x = (quadrant & 1) * 4;
         int quad_offset_y = (quadrant & 2) * 2;
-        DrawTextureRec(Engine.atlasTexture,
+        DrawTextureRec(Engine.AtlasTexture,
             new Rectangle((Vector2)GraphicIndexQuadrantToPoint(graphicIndex, quadrant), 4, 4),
             new Vector2(x*8 + quad_offset_x, y*8 + quad_offset_y),
             Color.White
@@ -88,13 +88,13 @@ public class World : Singleton<World>
 
     static void RenderTile(TileGraphicIndices tileGraphicIndices, int x, int y)
     {
-        if (tileGraphicIndices.topLeft == tileGraphicIndices.topRight &&
-            tileGraphicIndices.topLeft == tileGraphicIndices.bottomLeft &&
-            tileGraphicIndices.topLeft == tileGraphicIndices.bottomRight)
+        if (tileGraphicIndices.TopLeft == tileGraphicIndices.TopRight &&
+            tileGraphicIndices.TopLeft == tileGraphicIndices.BottomLeft &&
+            tileGraphicIndices.TopLeft == tileGraphicIndices.BottomRight)
         {
-            byte graphicIndex = tileGraphicIndices.topLeft;
+            byte graphicIndex = tileGraphicIndices.TopLeft;
             Rectangle source = new((Vector2)GraphicIndexToPoint(graphicIndex), 8, 8);
-            DrawTextureRec(Engine.atlasTexture,
+            DrawTextureRec(Engine.AtlasTexture,
                 source,
                 new Vector2(x * 8, y * 8),
                 Color.White
@@ -102,26 +102,26 @@ public class World : Singleton<World>
         }
         else
         {
-            RenderQuadrant(tileGraphicIndices.topLeft, x, y, 0);
-            RenderQuadrant(tileGraphicIndices.topRight, x, y, 1);
-            RenderQuadrant(tileGraphicIndices.bottomLeft, x, y, 2);
-            RenderQuadrant(tileGraphicIndices.bottomRight, x, y, 3);
+            RenderQuadrant(tileGraphicIndices.TopLeft, x, y, 0);
+            RenderQuadrant(tileGraphicIndices.TopRight, x, y, 1);
+            RenderQuadrant(tileGraphicIndices.BottomLeft, x, y, 2);
+            RenderQuadrant(tileGraphicIndices.BottomRight, x, y, 3);
         }
     }
 
     public void RenderTilemap()
     {
-        for (int x = 0; x<acreSize.width; x++){
-            for (int y = 0; y < acreSize.height; y++)
+        for (int x = 0; x<AcreSize.Width; x++){
+            for (int y = 0; y < AcreSize.Height; y++)
             {
-                RenderTile(acre.tilemap[x + y*acreSize.width], x, y);
+                RenderTile(acre.Tilemap[x + y*AcreSize.Width], x, y);
             }
         }
     }
 
     public void RenderLowProps()
     {
-        foreach (Prop prop in acre.lowProps)
+        foreach (Prop prop in acre.LowProps)
         {
             prop.Render();
         }
@@ -129,9 +129,7 @@ public class World : Singleton<World>
 
     public void RenderHighProps()
     {
-        // todo: order high prop rendering to put those with the lowest y (most up in scren space) first
-        // cont. this must also include some concept of offset as the tile y of an overhang is actually one below where the overhang is drawn
-        foreach (Prop prop in acre.highProps)
+        foreach (Prop prop in acre.HighProps)
         {
             prop.Render();
         }

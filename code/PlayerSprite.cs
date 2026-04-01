@@ -56,7 +56,7 @@ class PlayerSprite : Singleton<PlayerSprite>
         float currentTick = Engine.CurrentInterpTick + Engine.InterpT;
         Vector2 bobberSpritePosition = (bobber.Value.GetPosition(currentTick) - ((Vector2)bobberSpriteSize / 2f)) * graphicalScale + screenPosition;
         DrawTexturePro(
-            Engine.spritesTexture,
+            Engine.SpritesTexture,
             new(Vector2.Zero, bobberSpriteSize),
             new(bobberSpritePosition, (Vector2)bobberSpriteSize * graphicalScale),
             Vector2.Zero, 0f, Color.White
@@ -68,7 +68,7 @@ class PlayerSprite : Singleton<PlayerSprite>
         Vector2 renderInterpolatedPosition = Vector2.Lerp(renderOldPosition, renderPosition, Engine.InterpT);
 
         DrawTexturePro(
-            Engine.playerTexture,
+            Engine.PlayerTexture,
             new(GetAnimationSprite() * spriteSize, spriteSize),
             new(renderInterpolatedPosition * graphicalScale + screenPosition, (Vector2)spriteSize * graphicalScale),
             Vector2.Zero, 0f, Color.White

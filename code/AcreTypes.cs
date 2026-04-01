@@ -18,17 +18,17 @@ public enum CollisionType : byte
 
 readonly struct TileGraphicIndices
 {
-    public readonly byte topLeft;
-    public readonly byte topRight;
-    public readonly byte bottomLeft;
-    public readonly byte bottomRight;
+    public readonly byte TopLeft;
+    public readonly byte TopRight;
+    public readonly byte BottomLeft;
+    public readonly byte BottomRight;
 
     public TileGraphicIndices(byte topLeft, byte topRight, byte bottomLeft, byte bottomRight)
     {
-        this.topLeft = topLeft;
-        this.topRight = topRight;
-        this.bottomLeft = bottomLeft;
-        this.bottomRight = bottomRight;
+        this.TopLeft = topLeft;
+        this.TopRight = topRight;
+        this.BottomLeft = bottomLeft;
+        this.BottomRight = bottomRight;
     }
 
     public TileGraphicIndices(Span<byte> indices)
@@ -38,10 +38,10 @@ readonly struct TileGraphicIndices
             throw new ArgumentException("TileGraphicIndices byte array must be of length four.", nameof(indices));
         }
 
-        topLeft = indices[0];
-        topRight = indices[1];
-        bottomLeft = indices[2];
-        bottomRight = indices[3];
+        TopLeft = indices[0];
+        TopRight = indices[1];
+        BottomLeft = indices[2];
+        BottomRight = indices[3];
     }
 
     public TileGraphicIndices(byte[] indices) : this(indices.AsSpan()) { }

@@ -24,12 +24,12 @@ public static class Utilities
 
     public static Point GraphicIndexToPoint(byte graphicIndex)
     {
-        return new((graphicIndex & 0x0f) * TileSize.width, ((graphicIndex & 0xf0) >> 4) * TileSize.height);
+        return new((graphicIndex & 0x0f) * TileSize.Width, ((graphicIndex & 0xf0) >> 4) * TileSize.Height);
     }
     public static Point GraphicIndexQuadrantToPoint(byte graphicIndex, int quadrant)
     {
-        return new((graphicIndex & 0x0f) * TileSize.width + (quadrant % 2 * TileSize.width / 2),
-            ((graphicIndex & 0xf0) >> 4) * TileSize.height + (quadrant / 2 * TileSize.height / 2));
+        return new((graphicIndex & 0x0f) * TileSize.Width + (quadrant % 2 * TileSize.Width / 2),
+            ((graphicIndex & 0xf0) >> 4) * TileSize.Height + (quadrant / 2 * TileSize.Height / 2));
     }
 
     public static float MovementTowards(float current, float target, float maxDelta)

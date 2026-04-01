@@ -5,42 +5,42 @@ namespace FishingGame;
 
 public readonly record struct Point(int x, int y)
 {
-    public readonly int x = x;
-    public readonly int y = y;
+    public readonly int X = x;
+    public readonly int Y = y;
 
     public static Point operator +(Point a, Point b)
     {
-        return new(a.x + b.x, a.y + b.y);
+        return new(a.X + b.X, a.Y + b.Y);
     }
     public static Point operator -(Point a, Point b)
     {
-        return new(a.x - b.x, a.y - b.y);
+        return new(a.X - b.X, a.Y - b.Y);
     }
     public static Point operator *(Point a, Point b)
     {
-        return new(a.x * b.x, a.y * b.y);
+        return new(a.X * b.X, a.Y * b.Y);
     }
     public static Point operator /(Point a, Point b)
     {
-        return new(a.x / b.x, a.y / b.y);
+        return new(a.X / b.X, a.Y / b.Y);
     }
 
     public static Point operator *(Point a, int b)
     {
-        return new(a.x * b, a.y * b);
+        return new(a.X * b, a.Y * b);
     }
     public static Point operator /(Point a, int b)
     {
-        return new(a.x / b, a.y / b);
+        return new(a.X / b, a.Y / b);
     }
     public static Point operator *(Point a, NaturalSize b)
     {
-        return new(a.x * b.width, a.y * b.height);
+        return new(a.X * b.Width, a.Y * b.Height);
     }
 
     public static implicit operator Vector2(Point a)
     {
-        return new(a.x, a.y);
+        return new(a.X, a.Y);
     }
 
     public static Point RoundToPoint(Vector2 v)
@@ -59,50 +59,50 @@ public readonly record struct Point(int x, int y)
     }
 
     public override string ToString()
-    { return $"<{x}, {y}>"; }
+    { return $"<{X}, {Y}>"; }
 }
 public readonly record struct NaturalSize
 {
-    public readonly int width;
-    public readonly int height;
+    public readonly int Width;
+    public readonly int Height;
 
     public NaturalSize(int width, int height)
     {
         if (width <= 0)
         { throw new ArgumentOutOfRangeException(nameof(width), "Natural size must be greater than zero"); }
-        this.width = width;
+        this.Width = width;
 
         if (height <= 0)
         { throw new ArgumentOutOfRangeException(nameof(height), "Natural size must be greater than zero"); }
-        this.height = height;
+        this.Height = height;
     }
 
     public static NaturalSize operator *(NaturalSize a, int b)
     {
-        return new(a.width * b, a.height * b);
+        return new(a.Width * b, a.Height * b);
     }
     public static NaturalSize operator /(NaturalSize a, int b)
     {
-        return new(a.width / b, a.height / b);
+        return new(a.Width / b, a.Height / b);
     }
 
     public static implicit operator Vector2(NaturalSize a)
     {
-        return new(a.width, a.height);
+        return new(a.Width, a.Height);
     }
     public static explicit operator Point(NaturalSize a)
     {
-        return new(a.width, a.height);
+        return new(a.Width, a.Height);
     }
 
     public override string ToString()
-    { return $"<{width}, {height}>"; }
+    { return $"<{Width}, {Height}>"; }
 }
 
 readonly record struct NaturalRectangle(Point position, NaturalSize size)
 {
-    public readonly Point position = position;
-    public readonly NaturalSize size = size;
+    public readonly Point Position = position;
+    public readonly NaturalSize Size = size;
 
     public NaturalRectangle(int x, int y, NaturalSize size) : this(new(x, y), size) { }
 
@@ -130,7 +130,7 @@ readonly record struct NaturalRectangle(Point position, NaturalSize size)
         {
             Point position = new((int)MathF.Ceiling(minPointVec.X) - 1, (int)MathF.Ceiling(minPointVec.Y) - 1);
             Point maxPosition = new((int)MathF.Floor(maxPointVec.X) + 1, (int)MathF.Floor(maxPointVec.Y) + 1);
-            NaturalSize size = new(maxPosition.x - position.x, maxPosition.y - position.y);
+            NaturalSize size = new(maxPosition.X - position.X, maxPosition.Y - position.Y);
 
             return new(position, size);
         }
@@ -138,7 +138,7 @@ readonly record struct NaturalRectangle(Point position, NaturalSize size)
         {
             Point position = new((int)MathF.Floor(minPointVec.X), (int)MathF.Floor(minPointVec.Y));
             Point maxPosition = new((int)MathF.Ceiling(maxPointVec.X), (int)MathF.Ceiling(maxPointVec.Y));
-            NaturalSize size = new(maxPosition.x - position.x, maxPosition.y - position.y);
+            NaturalSize size = new(maxPosition.X - position.X, maxPosition.Y - position.Y);
 
             return new(position, size);
         }
@@ -147,9 +147,9 @@ readonly record struct NaturalRectangle(Point position, NaturalSize size)
 
     public static explicit operator Rectangle(NaturalRectangle a)
     {
-        return new((Vector2)a.position, (Vector2)a.size);
+        return new((Vector2)a.Position, (Vector2)a.Size);
     }
 
     public override string ToString()
-    { return $"Position: {position}, Size: {size}"; }
+    { return $"Position: {Position}, Size: {Size}"; }
 }

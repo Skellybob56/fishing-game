@@ -39,8 +39,8 @@ partial class PlayerActor : Singleton<PlayerActor>
             Point originTile = Point.FloorToPoint(origin / (Vector2)Utilities.TileSize);
 
             // on moving axis
-            int tileSize = horizontal ? Utilities.TileSize.width : Utilities.TileSize.height;
-            int startingPos = horizontal ? origin.x : origin.y;
+            int tileSize = horizontal ? Utilities.TileSize.Width : Utilities.TileSize.Height;
+            int startingPos = horizontal ? origin.X : origin.Y;
             int startingTile = (int)MathF.Floor(startingPos / (float)tileSize);
             int finalPos = startingPos + (directionSign * throwDistance);
             int finalTile = (int)MathF.Floor(finalPos / (float)tileSize);
@@ -49,20 +49,20 @@ partial class PlayerActor : Singleton<PlayerActor>
 
             landingTimeDelta = throwDistance / horizontalVelocity;
             collisionTimeDelta = landingTimeDelta;
-            landingInWater = Engine.PointToCollision(horizontal? finalTile : originTile.x, horizontal ? originTile.y : finalTile) == CollisionType.Wet;
+            landingInWater = Engine.PointToCollision(horizontal? finalTile : originTile.X, horizontal ? originTile.Y : finalTile) == CollisionType.Wet;
 
             // todo: widen the bobber collider to be 2 pixels wide (rather than just a point)
             for (int tileOffset = 0; tileOffset <= fullTileOffset; tileOffset++)
             {
                 int tile = startingTile + (directionSign * tileOffset);
-                if (Engine.PointToCollision(horizontal ? tile : originTile.x, horizontal ? originTile.y : tile) == CollisionType.Hilly)
+                if (Engine.PointToCollision(horizontal ? tile : originTile.X, horizontal ? originTile.Y : tile) == CollisionType.Hilly)
                 {
                     int intersectionPoint = (tile + (direction.IsPositive() ? 0 : 1)) * tileSize;
                     collisionTimeDelta = MathF.Abs(intersectionPoint - startingPos) / horizontalVelocity;
 
                     // check to see if the point before the hit point was water, if so, then landingInWater is true
                     tile -= directionSign;
-                    landingInWater = Engine.PointToCollision(horizontal ? tile : originTile.x, horizontal ? originTile.y : tile) == CollisionType.Wet;
+                    landingInWater = Engine.PointToCollision(horizontal ? tile : originTile.X, horizontal ? originTile.Y : tile) == CollisionType.Wet;
                     break;
                 }
             }
@@ -77,8 +77,8 @@ partial class PlayerActor : Singleton<PlayerActor>
         public Vector2 GetPosition(float currentTick)
         {
             float timePassed = (currentTick - creationTick) * Engine.FixedUpdateIntervalF;
-            float heightTimePassed = MathF.Min(timePassed, landingTimeDelta); // freezes height interpolation at landing point
-            float horizontalTimePassed = MathF.Min(timePassed, collisionTimeDelta); // freezes horizontal interpolation at collision point
+            float heightTimePassed = MathF.Min(timePassed, landingTimeDelta); // freezes Height interpolation at landing point
+            float horizontalTimePassed = MathF.Min(timePassed, collisionTimeDelta); // freezes horizontal interpolation at Collision point
             return (direction.ToVector2() * horizontalTimePassed * horizontalVelocity) +
                 new Vector2(0f, CalculateHeight(heightTimePassed)) + origin;
         }
