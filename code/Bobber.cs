@@ -60,7 +60,7 @@ partial class PlayerActor : Singleton<PlayerActor>
                     int intersectionPoint = (tile + (direction.IsPositive() ? 0 : 1)) * tileSize;
                     collisionTimeDelta = MathF.Abs(intersectionPoint - startingPos) / horizontalVelocity;
 
-                    // check to see if the point before the hit point was water, if so, then water is allowed
+                    // check to see if the point before the hit point was water, if so, then landingInWater is true
                     tile -= directionSign;
                     landingInWater = Engine.PointToCollision(horizontal ? tile : originTile.x, horizontal ? originTile.y : tile) == CollisionType.Wet;
                     break;

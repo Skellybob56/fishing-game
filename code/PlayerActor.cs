@@ -301,6 +301,12 @@ partial class PlayerActor : Singleton<PlayerActor>
         return wishVelocity.LengthSquared() <= velocity.LengthSquared()? AccelerationMode.Decelerating : AccelerationMode.Accelerating;
     }
 
+    Vector2 GetWishVelocity()
+    {
+        if (bobberState != BobberState.Withdrawn) { return Vector2.Zero; }
+        else { return Controller.WishDir * topSpeed; }
+    }
+
     void UpdateVelocity()
     {
         AccelerationMode accelerationMode = GetAccelerationMode(wishVelocity, velocity);
@@ -352,6 +358,8 @@ partial class PlayerActor : Singleton<PlayerActor>
         {
             BobberState nextBobberState = bobber.Value.FixedUpdate();
 
+            // todo: name bobber to bobberProjectile and add a bobber visual struct to send to PlayerSprite
+            // cont. from here, also set bobberProjectile to null if nextBobberState is in water
             if (nextBobberState == BobberState.Withdrawn)
             {
                 bobber = null;
@@ -374,7 +382,7 @@ partial class PlayerActor : Singleton<PlayerActor>
 
     public void FixedUpdate()
     {
-        wishVelocity = Controller.WishDir * topSpeed;
+        wishVelocity = GetWishVelocity();
 
         UpdateVelocity();
         UpdateFacingDirection();
