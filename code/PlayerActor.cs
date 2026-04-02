@@ -49,6 +49,7 @@ partial class PlayerActor : Singleton<PlayerActor>
     CardinalDirection facingDirection;
 
     (BobberProjectile? Projectile, BobberState State) bobber = (null, BobberState.Withdrawn); // null if fishing line not cast
+    int fishingTickCounter, fishingTicksSinceStart, nibbleCount;
 
     NudgeFlags nudgeFlags = NudgeFlags.NoNudge;
 
@@ -334,35 +335,72 @@ partial class PlayerActor : Singleton<PlayerActor>
         }
     }
 
-    void UpdateBobber()
+    void UpdateFishing()
     {
-        if (Controller.castRod)
+        // todo: split into several functions
+        if (bobber.State != BobberState.Sunk)
         {
-            if (bobber.Projectile is null)
+            // player input
+            if (Controller.castRod)
             {
-                // throw bobber
-                // todo: add control system to set current magic number throwDistance (24)
-                bobber.Projectile = new(Point.RoundToPoint(position + collider.Position + ((Vector2)collider.Size / 2f)),
-                    24, facingDirection);
-                bobber.State = BobberState.InAir;
+                if (bobber.State == BobberState.Withdrawn)
+                {
+                    // throw bobber
+                    // todo: add control system to set current magic number throwDistance (24)
+                    bobber.Projectile = new(Point.RoundToPoint(position + collider.Position + ((Vector2)collider.Size / 2f)),
+                        24, facingDirection);
+                    bobber.State = BobberState.InAir;
+                }
+                else
+                {
+                    // return bobber
+                    bobber.Projectile = null;
+                    bobber.State = BobberState.Withdrawn;
+                }
             }
-            else
+
+            // bobber projectile update
+            if (bobber.Projectile is not null)
             {
-                // return bobber
-                bobber.Projectile = null;
-                bobber.State = BobberState.Withdrawn;
+                BobberState nextBobberState = bobber.Projectile.Value.FixedUpdate();
+
+                if (nextBobberState == BobberState.Withdrawn)
+                {
+                    bobber.Projectile = null;
+                }
+                else if (nextBobberState == BobberState.InWater &&
+                    (bobber.State == BobberState.InAir || bobber.State == BobberState.Sunk))
+                {
+                    fishingTickCounter = fishingTicksSinceStart = nibbleCount = 0;
+                }
+
+                bobber.State = nextBobberState;
+            }
+
+            // fish catching update
+            if (bobber.State == BobberState.Nibbled)
+            { bobber.State = BobberState.InWater; }
+
+            if (bobber.State == BobberState.InWater)
+            {
+                fishingTickCounter++;
+                if (fishingTickCounter >= 20)
+                {
+                    fishingTickCounter -= 20;
+                    fishingTicksSinceStart++;
+                    if (GetRandomValue(0, 999) < 100 || fishingTicksSinceStart > 60)
+                    {
+                        nibbleCount++;
+                        if (nibbleCount >= 2)
+                        { bobber.State = BobberState.Sunk; }
+                        else { bobber.State = BobberState.Nibbled; }
+                    }
+                }
             }
         }
-        if (bobber.Projectile is not null)
+        else
         {
-            BobberState nextBobberState = bobber.Projectile.Value.FixedUpdate();
-
-            if (nextBobberState == BobberState.Withdrawn)
-            {
-                bobber.Projectile = null;
-            }
-
-            bobber.State = nextBobberState;
+            // fishing minigame
         }
     }
 
@@ -391,7 +429,7 @@ partial class PlayerActor : Singleton<PlayerActor>
 
         ApplyDisplacement();
 
-        UpdateBobber();
+        UpdateFishing();
 
         SaveToSharedData();
     }

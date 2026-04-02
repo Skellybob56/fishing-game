@@ -19,6 +19,7 @@ class PlayerSprite : Singleton<PlayerSprite>
     Vector2 renderOldPosition;
     (BobberProjectile? Projectile, BobberState State) bobber;
     int oldCurrentInterpTick = -1;
+    int lastNibbleTick = -2048;
 
     private PlayerSprite(PlayerActor playerActor)
     {
@@ -51,14 +52,33 @@ class PlayerSprite : Singleton<PlayerSprite>
         };
     }
 
+    Vector2 GetBobberSprite()
+    {
+        if (bobber.State == BobberState.Nibbled || (bobber.State == BobberState.InWater  && Engine.CurrentInterpTick - lastNibbleTick <= 6))
+        {
+            return new(1, 0);
+        }
+
+        return bobber.State switch
+        {
+            BobberState.InWater => new(0, 0),
+            BobberState.InAir => new(0, 0),
+            BobberState.Sunk => new(0, 1),
+            _ => throw new ArgumentOutOfRangeException(nameof(bobber.State), $"{nameof(BobberState)} state invalid for getting sprite")
+        };
+    }
+
     void RenderBobber(Vector2 screenPosition, float graphicalScale)
     {
         if (!bobber.Projectile.HasValue) { return; }
+        if (bobber.State == BobberState.Nibbled)
+        { lastNibbleTick = Engine.CurrentInterpTick; }
+
         float currentTick = Engine.CurrentInterpTick + Engine.InterpT;
         Vector2 bobberSpritePosition = (bobber.Projectile.Value.GetPosition(currentTick) - ((Vector2)bobberSpriteSize / 2f)) * graphicalScale + screenPosition;
         DrawTexturePro(
             Engine.SpritesTexture,
-            new(Vector2.Zero, bobberSpriteSize),
+            new(GetBobberSprite() * bobberSpriteSize, bobberSpriteSize),
             new(bobberSpritePosition, (Vector2)bobberSpriteSize * graphicalScale),
             Vector2.Zero, 0f, Color.White
             );

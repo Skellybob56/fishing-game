@@ -5,7 +5,7 @@ namespace FishingGame;
 partial class PlayerActor : Singleton<PlayerActor>
 {
     public enum BobberState : byte
-    { Withdrawn, InAir, InWater }
+    { Withdrawn, InAir, InWater, Nibbled, Sunk }
 
     public readonly struct BobberProjectile
     {
