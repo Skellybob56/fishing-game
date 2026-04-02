@@ -40,7 +40,9 @@ static partial class Engine
                     Thread.Sleep(remainingTimeFixedMSec - 10);
                 }
 
-                while (stopwatchFixedUpdate.ElapsedMilliseconds < nextTickTimeFixedMSec) { }
+                SpinWait spinWait = new();
+                while (stopwatchFixedUpdate.ElapsedMilliseconds < nextTickTimeFixedMSec)
+                { spinWait.SpinOnce(); }
             }
 
             lastTickTimeFixedMSec = stopwatchFixedUpdate.ElapsedMilliseconds;
