@@ -18,7 +18,6 @@ class PlayerSprite : Singleton<PlayerSprite>
     Vector2 renderPosition;
     Vector2 renderOldPosition;
     (BobberProjectile? Projectile, BobberState State) bobber;
-    int oldCurrentInterpTick = -1;
     int lastNibbleTick = -2048;
 
     private PlayerSprite(PlayerActor playerActor)
@@ -27,16 +26,12 @@ class PlayerSprite : Singleton<PlayerSprite>
         LoadSharedData();
     }
 
-    void LoadSharedData()
+    public void LoadSharedData()
     {
-        lock (playerActor.SharedDataLock)
-        {
-            renderPosition = playerActor.SharedPosition;
-            renderOldPosition = playerActor.SharedOldPosition;
-            facingDirection = playerActor.SharedFacingDirection;
-            bobber = playerActor.SharedBobber;
-        }
-        oldCurrentInterpTick = Engine.CurrentInterpTick;
+        renderPosition = playerActor.SharedPosition;
+        renderOldPosition = playerActor.SharedOldPosition;
+        facingDirection = playerActor.SharedFacingDirection;
+        bobber = playerActor.SharedBobber;
     }
 
     Vector2 GetAnimationSprite()
@@ -98,12 +93,6 @@ class PlayerSprite : Singleton<PlayerSprite>
 
     public void Render(Vector2 screenPosition, float graphicalScale)
     {
-        // load data
-        if (oldCurrentInterpTick != Engine.CurrentInterpTick)
-        {
-            LoadSharedData();
-        }
-
         RenderBobber(screenPosition, graphicalScale);
 
         RenderPlayer(screenPosition, graphicalScale);

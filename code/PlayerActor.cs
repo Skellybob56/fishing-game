@@ -56,7 +56,6 @@ partial class PlayerActor : Singleton<PlayerActor>
     NudgeFlags nudgeFlags = NudgeFlags.NoNudge;
 
     // shared
-    public Lock SharedDataLock { get; } = new();
     public Vector2 SharedPosition { get; private set; }
     public Vector2 SharedOldPosition { get; private set; }
     public CardinalDirection SharedFacingDirection { get; private set; }
@@ -407,15 +406,12 @@ partial class PlayerActor : Singleton<PlayerActor>
         }
     }
 
-    void SaveToSharedData()
+    public void SaveToSharedData()
     {
-        lock (SharedDataLock)
-        {
-            SharedOldPosition = SharedPosition;
-            SharedPosition = position;
-            SharedFacingDirection = facingDirection;
-            SharedBobber = bobber;
-        }
+        SharedOldPosition = SharedPosition;
+        SharedPosition = position;
+        SharedFacingDirection = facingDirection;
+        SharedBobber = bobber;
     }
 
     public void FixedUpdate()
@@ -433,7 +429,5 @@ partial class PlayerActor : Singleton<PlayerActor>
         ApplyDisplacement();
 
         UpdateFishing();
-
-        SaveToSharedData();
     }
 }

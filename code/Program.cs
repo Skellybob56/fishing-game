@@ -1,5 +1,4 @@
 ﻿using Raylib_cs;
-using System.Diagnostics;
 using System.Numerics;
 using static Raylib_cs.Raylib;
 
@@ -25,7 +24,8 @@ static partial class Engine
 
     // interpolation
     public static float InterpT { get; private set; }
-    public static int CurrentInterpTick { get; private set; }
+    public static int CurrentInterpTick { get; private set; } // todo: rename to CurrentRenderTick
+    static long lastTickTimeRenderMsec;
 
     // screen resolution vars
     const int startScreenWidth = 800;
@@ -72,6 +72,11 @@ static partial class Engine
     { return world.PointToCollision(x, y); }
     public static CollisionType PointToCollision(Point p)
     { return PointToCollision(p.X, p.Y); }
+
+    static void LoadSharedData()
+    {
+        player.sprite.LoadSharedData();
+    }
 
     static void WindowResized()
     {
@@ -149,12 +154,22 @@ static partial class Engine
     {
         while (Running)
         {
+            lock (SharedDataLock)
+            {
+                if (CurrentInterpTick != CurrentTick)
+                {
+                    lastTickTimeRenderMsec = lastTickTimeSharedMsec;
+                    LoadSharedData();
+                    CurrentInterpTick = CurrentTick;
+                }
+            }
+            InterpT = (float)(stopwatchFixedUpdate.ElapsedMilliseconds - lastTickTimeRenderMsec) * (1f / FixedUpdateIntervalMSec);
+
             Update();
-            CurrentInterpTick = CurrentTick;
-            InterpT = (float)(stopwatchFixedUpdate.ElapsedMilliseconds - lastTickTimeFixedMSec) * (1f / FixedUpdateIntervalMSec);
+
             Render();
 
-            Running = !WindowShouldClose();
+            Running = !WindowShouldClose(); // todo: make the program exit gracefully (including fixing race conditions with the Running variable)
         }
 
         CloseWindow();

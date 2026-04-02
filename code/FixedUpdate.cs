@@ -9,20 +9,25 @@ static partial class Engine
     public const float FixedUpdateIntervalF = (float)FixedUpdateInterval;
     static Stopwatch stopwatchFixedUpdate = new();
     static long lastTickTimeFixedMSec;
+    static long lastTickTimeSharedMsec;
     public static int CurrentTick { get; private set; } = 0;
+    static readonly Lock SharedDataLock = new();
 
     public static void FixedUpdateLoop()
     {
         stopwatchFixedUpdate.Start();
 
+        lastTickTimeFixedMSec = stopwatchFixedUpdate.ElapsedMilliseconds;
+        lock (SharedDataLock)
+        {
+            lastTickTimeSharedMsec = lastTickTimeFixedMSec;
+        }
         while (Running)
         {
             long currentTimeFixedMSec;
             long nextTickTimeFixedMSec;
             int remainingTimeFixedMSec;
 
-            ++CurrentTick;
-            lastTickTimeFixedMSec = stopwatchFixedUpdate.ElapsedMilliseconds;
             FixedUpdate();
 
             currentTimeFixedMSec = stopwatchFixedUpdate.ElapsedMilliseconds;
@@ -37,6 +42,15 @@ static partial class Engine
 
                 while (stopwatchFixedUpdate.ElapsedMilliseconds < nextTickTimeFixedMSec) { }
             }
+
+            lastTickTimeFixedMSec = stopwatchFixedUpdate.ElapsedMilliseconds;
+
+            lock (SharedDataLock)
+            {
+                lastTickTimeSharedMsec = lastTickTimeFixedMSec;
+                SaveToSharedData();
+                ++CurrentTick;
+            }
         }
     }
 
@@ -44,5 +58,10 @@ static partial class Engine
     {
         controller.FixedUpdate();
         player.actor.FixedUpdate();
+    }
+
+    static void SaveToSharedData()
+    {
+        player.actor.SaveToSharedData();
     }
 }
