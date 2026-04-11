@@ -1,0 +1,5 @@
+UI can be inspired from ATLUS games (Persona, Metaphor: Refantazio)
+Have a zig-zag path UI element where the path moves upwards (left in fishing_ui_mockup.png). You use a and d to move the bobber to stay on the path (preferably make the path make thematic sense). The path could be smooth if wide enough to allow tolerance. This input scheme means that the path must travel straight down for it to feel right.
+Interrupt this occasionally (more with harder fish) with surprise button mashes using the popup on the right in fishing_ui_mockup.png (N is number left to mash). Also always do a mash at the end of fishing (possibly should use different UI indicatior to show finality).
+A difficulty I currently have is how to represent progress. I'm not sure how to do this without making the UI overly busy and rectangular. One solution is to mask a progress bar traveling down over the zig-zag UI element
+zig-zag UI element theming ideas include a zig-zag strip of parchment moving upwards and having a light/dark spot to follow in some water.
