@@ -111,8 +111,9 @@ static partial class Engine
 
         EndTextureMode();
 
-        // todo: move all prop/sprite rendering to use a centralised system that renders them in order of y (top to bottom in screenspace)
+        // todo: move all prop/sprite rendering to use 3D billboard draw calls to allow them to draw properly with depth
         // cont. the y location can be different from the tile location of the sprite (for example, overhangs should be understood as being located at the y value below them)
+        // cont. high props can be rendered at full res while tilemap and low props can coninue to be rendered on the base map.
         BeginTextureMode(highRenderTexture);
         ClearBackground(new(0, 0, 0, 0)); // transparent background
 
@@ -132,7 +133,7 @@ static partial class Engine
                 screenHeightLimited ? 0f : (screenHeight - graphicalScale * internalHeight) / 2f,
                 internalWidth * graphicalScale, internalHeight * graphicalScale
                 );
-
+        
         DrawTexturePro(lowRenderTexture.Texture, source, dest, Vector2.Zero, 0f, Color.White);
 
         player.sprite.Render(dest.Position, graphicalScale);

@@ -13,12 +13,11 @@ class PlayerSprite : Singleton<PlayerSprite>
     public static readonly NaturalSize spriteSize = new(16, 16);
     static readonly NaturalSize bobberSpriteSize = new(8, 8);
 
-    PlayerActor playerActor;
+    PlayerActor playerActor; // todo: make readonly
     CardinalDirection facingDirection;
     Vector2 renderPosition;
     Vector2 renderOldPosition;
-    (BobberProjectile? Projectile, BobberState State) bobber;
-    int lastNibbleTick = -2048;
+    (BobberProjectile? Projectile, BobberState State, int lastNibbleTick) bobber;
 
     private PlayerSprite(PlayerActor playerActor)
     {
@@ -49,7 +48,7 @@ class PlayerSprite : Singleton<PlayerSprite>
 
     Vector2 GetBobberSprite()
     {
-        if (bobber.State == BobberState.Nibbled || (bobber.State == BobberState.InWater  && Engine.CurrentInterpTick - lastNibbleTick <= 6))
+        if (bobber.State == BobberState.InWater  && Engine.CurrentInterpTick - bobber.lastNibbleTick <= 6)
         {
             return new(1, 0);
         }
@@ -66,8 +65,6 @@ class PlayerSprite : Singleton<PlayerSprite>
     void RenderBobber(Vector2 screenPosition, float graphicalScale)
     {
         if (!bobber.Projectile.HasValue) { return; }
-        if (bobber.State == BobberState.Nibbled)
-        { lastNibbleTick = Engine.CurrentInterpTick; }
 
         float currentTick = Engine.CurrentInterpTick + Engine.InterpT;
         Vector2 bobberSpritePosition = (bobber.Projectile.Value.GetPosition(currentTick) - ((Vector2)bobberSpriteSize / 2f)) * graphicalScale + screenPosition;

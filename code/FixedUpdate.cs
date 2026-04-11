@@ -11,7 +11,7 @@ static partial class Engine
     public const int FixedUpdateIntervalMSec = 50;
     public const double FixedUpdateInterval = FixedUpdateIntervalMSec / 1000d;
     public const float FixedUpdateIntervalF = (float)FixedUpdateInterval;
-    static Stopwatch stopwatchFixedUpdate = new();
+    static Stopwatch stopwatchFixedUpdate = new(); // todo: consider making readonly
     static long lastTickTimeFixedMSec;
     static long lastTickTimeSharedMsec;
     public static int CurrentTick { get; private set; } = 0;

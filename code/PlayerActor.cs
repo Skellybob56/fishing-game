@@ -35,7 +35,7 @@ partial class PlayerActor : Singleton<PlayerActor>
     const float collisionVelocityCost = 0.2f;
     const float edgeBevelDepth = 0.4f;
     const float maxNudgePortion = 0.1f; // maximum distance of nudge (per frame) caused by edge bevel measured in portion of bevel length
-    const int biteChance = 80; // out of 1000 - chance rolled per second. must hit twice before a catch (second hit is catch)
+    const int biteChance = 100; // out of 1000 - chance rolled per second. must hit twice before a catch (second hit is catch)
     const int maxSecondsBeforeCatch = 60;
 
     readonly NaturalRectangle collider = new(
@@ -50,7 +50,7 @@ partial class PlayerActor : Singleton<PlayerActor>
     Vector2 displacement;
     CardinalDirection facingDirection;
 
-    (BobberProjectile? Projectile, BobberState State) bobber = (null, BobberState.Withdrawn); // null if fishing line not cast
+    (BobberProjectile? Projectile, BobberState State, int lastNibbleTick) bobber = (null, BobberState.Withdrawn, -65536); // null if fishing line not cast
     int fishingTickCounter, fishingTicksSinceStart, nibbleCount;
 
     NudgeFlags nudgeFlags = NudgeFlags.NoNudge;
@@ -59,7 +59,7 @@ partial class PlayerActor : Singleton<PlayerActor>
     public Vector2 SharedPosition { get; private set; }
     public Vector2 SharedOldPosition { get; private set; }
     public CardinalDirection SharedFacingDirection { get; private set; }
-    public (BobberProjectile? Projectile, BobberState State) SharedBobber { get; private set; }
+    public (BobberProjectile? Projectile, BobberState State, int lastNibbleTick) SharedBobber { get; private set; }
 
     private PlayerActor(Vector2 position)
     {
@@ -352,6 +352,7 @@ partial class PlayerActor : Singleton<PlayerActor>
                     bobber.Projectile = new(Point.RoundToPoint(position + collider.Position + ((Vector2)collider.Size / 2f)),
                         24, facingDirection);
                     bobber.State = BobberState.InAir;
+                    bobber.lastNibbleTick = -65536;
                 }
                 else
                 {
@@ -380,9 +381,6 @@ partial class PlayerActor : Singleton<PlayerActor>
             }
 
             // fish catching update
-            if (bobber.State == BobberState.Nibbled)
-            { bobber.State = BobberState.InWater; }
-
             if (bobber.State == BobberState.InWater)
             {
                 fishingTickCounter++;
@@ -396,7 +394,7 @@ partial class PlayerActor : Singleton<PlayerActor>
                         nibbleCount++;
                         if (nibbleCount >= 2)
                         { bobber.State = BobberState.Sunk; }
-                        else { bobber.State = BobberState.Nibbled; }
+                        else { bobber.lastNibbleTick = Engine.CurrentTick; }
                     }
                 }
             }
