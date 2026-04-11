@@ -64,11 +64,12 @@ partial class PlayerActor : Singleton<PlayerActor>
     private PlayerActor(Vector2 position)
     {
         this.position = position;
+        facingDirection = CardinalDirection.Down;
+
         SharedPosition = position;
         SharedOldPosition = position;
-
-        facingDirection = CardinalDirection.Down;
         SharedFacingDirection = facingDirection;
+        SharedBobber = bobber;
     }
 
     void Rollover()
@@ -406,14 +407,6 @@ partial class PlayerActor : Singleton<PlayerActor>
         }
     }
 
-    public void SaveToSharedData()
-    {
-        SharedOldPosition = SharedPosition;
-        SharedPosition = position;
-        SharedFacingDirection = facingDirection;
-        SharedBobber = bobber;
-    }
-
     public void FixedUpdate()
     {
         wishVelocity = GetWishVelocity();
@@ -429,5 +422,13 @@ partial class PlayerActor : Singleton<PlayerActor>
         ApplyDisplacement();
 
         UpdateFishing();
+    }
+
+    public void SaveToSharedData()
+    {
+        SharedPosition = position;
+        SharedOldPosition = SharedPosition;
+        SharedFacingDirection = facingDirection;
+        SharedBobber = bobber;
     }
 }
