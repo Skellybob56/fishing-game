@@ -66,8 +66,8 @@ partial class PlayerActor : Singleton<PlayerActor>
         this.position = position;
         facingDirection = CardinalDirection.Down;
 
-        SharedPosition = position;
         SharedOldPosition = position;
+        SharedPosition = position;
         SharedFacingDirection = facingDirection;
         SharedBobber = bobber;
     }
@@ -424,8 +424,9 @@ partial class PlayerActor : Singleton<PlayerActor>
 
     public void SaveToSharedData()
     {
-        SharedPosition = position;
         SharedOldPosition = SharedPosition;
+
+        SharedPosition = position;
         SharedFacingDirection = facingDirection;
         SharedBobber = bobber;
     }

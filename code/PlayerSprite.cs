@@ -27,8 +27,9 @@ class PlayerSprite : Singleton<PlayerSprite>
 
     public void LoadSharedData()
     {
-        renderPosition = playerActor.SharedPosition;
         renderOldPosition = playerActor.SharedOldPosition;
+
+        renderPosition = playerActor.SharedPosition;
         facingDirection = playerActor.SharedFacingDirection;
         bobber = playerActor.SharedBobber;
     }
