@@ -23,7 +23,7 @@ readonly struct Prop(Point location, NaturalRectangle graphicSource, CollisionTy
         DrawTexturePro(
             Engine.AtlasTexture,
             flippedX? new((Vector2)graphicSource.Position, new(-graphicSource.Size.Width, graphicSource.Size.Height)) : (Rectangle)graphicSource,
-            new Rectangle((Vector2)Location + new Vector2(graphicSource.Size.Width / 2f, graphicSource.Size.Height / 2f), (Vector2)graphicSource.Size),
+            new Rectangle(((Vector2)graphicSource.Size) / 2f + Location, (Vector2)graphicSource.Size),
             new(graphicSource.Size.Width / 2f, graphicSource.Size.Height / 2f),
             rotation,
             Color.White

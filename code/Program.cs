@@ -16,7 +16,6 @@ static partial class Engine
     static readonly (PlayerActor actor, PlayerSprite sprite) player;
     static readonly World world;
     static readonly RenderTexture2D lowRenderTexture;
-    static readonly RenderTexture2D highRenderTexture;
 
     // fixed update
     public static bool Running { get; private set; } = true;
@@ -41,6 +40,7 @@ static partial class Engine
 
     static bool screenHeightLimited;
     static float graphicalScale;
+    static Camera2D camera;
 
     static Engine()
     {
@@ -61,8 +61,6 @@ static partial class Engine
 
         lowRenderTexture = LoadRenderTexture(internalWidth, internalHeight);
         SetTextureFilter(lowRenderTexture.Texture, TextureFilter.Point);
-        highRenderTexture = LoadRenderTexture(internalWidth, internalHeight);
-        SetTextureFilter(highRenderTexture.Texture, TextureFilter.Point);
 
         fixedUpdateThread = new Thread(FixedUpdateLoop);
         fixedUpdateThread.Start();
@@ -84,9 +82,17 @@ static partial class Engine
         screenHeight = GetScreenHeight();
         screenRatio = (float)screenWidth / (float)screenHeight;
         screenHeightLimited = screenRatio > internalRatio;
-        graphicalScale = screenHeightLimited ?
-            screenHeight / (float)internalHeight :
-            screenWidth / (float)internalWidth;
+
+        if (screenHeightLimited)
+        {
+            graphicalScale = screenHeight / (float)internalHeight;
+            camera = new(Vector2.Zero, new((internalWidth - screenWidth / graphicalScale) / 2f, 0f), 0f, graphicalScale);
+        }
+        else
+        {
+            graphicalScale = screenWidth / (float)internalWidth;
+            camera = new(Vector2.Zero, new((internalHeight - screenHeight / graphicalScale) / 2f, 0f), 0f, graphicalScale);
+        }
     }
 
     static void Update()
@@ -101,7 +107,7 @@ static partial class Engine
         }
     }
 
-    static void RenderToTextures()
+    static void RenderToTexture()
     {
         BeginTextureMode(lowRenderTexture);
         ClearBackground(Color.Magenta);
@@ -110,42 +116,29 @@ static partial class Engine
         world.RenderLowProps();
 
         EndTextureMode();
-
-        // todo: move all prop/sprite rendering to use 3D billboard draw calls to allow them to draw properly with depth
-        // cont. the y location can be different from the tile location of the sprite (for example, overhangs should be understood as being located at the y value below them)
-        // cont. high props can be rendered at full res while tilemap and low props can coninue to be rendered on the base map.
-        BeginTextureMode(highRenderTexture);
-        ClearBackground(new(0, 0, 0, 0)); // transparent background
-
-        world.RenderHighProps();
-
-        EndTextureMode();
     }
 
     static void RenderToScreen()
     {
         BeginDrawing();
+        BeginMode2D(camera);
         ClearBackground(Color.Black);
 
-        Rectangle source = new(0, 0, internalWidth, -internalHeight);
-        Rectangle dest = new(
-                screenHeightLimited ? (screenWidth - graphicalScale * internalWidth) / 2f : 0f,
-                screenHeightLimited ? 0f : (screenHeight - graphicalScale * internalHeight) / 2f,
-                internalWidth * graphicalScale, internalHeight * graphicalScale
-                );
-        
-        DrawTexturePro(lowRenderTexture.Texture, source, dest, Vector2.Zero, 0f, Color.White);
+        DrawTexturePro(lowRenderTexture.Texture, new(0, 0, internalWidth, -internalHeight), new(0, 0, internalWidth, internalHeight), Vector2.Zero, 0f, Color.White);
 
-        player.sprite.Render(dest.Position, graphicalScale);
+        // todo: move all prop/sprite rendering to use a sorting system to make the render in the correct order
+        // cont. the y location can be different from the tile location of the sprite (for example, overhangs should be understood as being located at the y value below them)
+        player.sprite.Render();
 
-        DrawTexturePro(highRenderTexture.Texture, source, dest, Vector2.Zero, 0f, Color.White);
+        world.RenderHighProps();
 
+        EndMode2D();
         EndDrawing();
     }
 
     static void Render()
     {
-        RenderToTextures();
+        RenderToTexture();
         RenderToScreen();
     }
 

@@ -63,36 +63,36 @@ class PlayerSprite : Singleton<PlayerSprite>
         };
     }
 
-    void RenderBobber(Vector2 screenPosition, float graphicalScale)
+    void RenderBobber()
     {
         if (!bobber.Projectile.HasValue) { return; }
 
         float currentTick = Engine.CurrentInterpTick + Engine.InterpT;
-        Vector2 bobberSpritePosition = (bobber.Projectile.Value.GetPosition(currentTick) - ((Vector2)bobberSpriteSize / 2f)) * graphicalScale + screenPosition;
+        Vector2 bobberSpritePosition = bobber.Projectile.Value.GetPosition(currentTick) - ((Vector2)bobberSpriteSize / 2f);
         DrawTexturePro(
             Engine.SpritesTexture,
             new(GetBobberSprite() * bobberSpriteSize, bobberSpriteSize),
-            new(bobberSpritePosition, (Vector2)bobberSpriteSize * graphicalScale),
+            new(bobberSpritePosition, (Vector2)bobberSpriteSize),
             Vector2.Zero, 0f, Color.White
             );
     }
 
-    void RenderPlayer(Vector2 screenPosition, float graphicalScale)
+    void RenderPlayer()
     {
         Vector2 renderInterpolatedPosition = Vector2.Lerp(renderOldPosition, renderPosition, Engine.InterpT);
 
         DrawTexturePro(
             Engine.PlayerTexture,
             new(GetAnimationSprite() * spriteSize, spriteSize),
-            new(renderInterpolatedPosition * graphicalScale + screenPosition, (Vector2)spriteSize * graphicalScale),
+            new(renderInterpolatedPosition, (Vector2)spriteSize),
             Vector2.Zero, 0f, Color.White
             );
     }
 
-    public void Render(Vector2 screenPosition, float graphicalScale)
+    public void Render()
     {
-        RenderBobber(screenPosition, graphicalScale);
+        RenderBobber();
 
-        RenderPlayer(screenPosition, graphicalScale);
+        RenderPlayer();
     }
 }
