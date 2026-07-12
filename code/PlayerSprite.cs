@@ -10,6 +10,8 @@ class PlayerSprite : Singleton<PlayerSprite>
 	public static PlayerSprite Create(PlayerActor playerActor)
 	{ return Register(new PlayerSprite(playerActor)); }
 
+	const int fishingLineHoldHeight = -5;
+
 	public static readonly NaturalSize spriteSize = new(16, 16);
 	static readonly NaturalSize bobberSpriteSize = new(8, 8);
 
@@ -34,17 +36,25 @@ class PlayerSprite : Singleton<PlayerSprite>
 		bobber = playerActor.SharedBobber;
 	}
 
-	Vector2 GetAnimationSprite()
+	public void Render()
 	{
-		// todo: add walking animation
-		return facingDirection switch
-		{
-			CardinalDirection.Up => new(0, 0),
-			CardinalDirection.Down => new(0, 1),
-			CardinalDirection.Left => new(0, 2),
-			CardinalDirection.Right => new(0, 3),
-			_ => throw new ArgumentOutOfRangeException(nameof(facingDirection), $"{nameof(CardinalDirection)} variables must be within the four cardinal directions")
-		};
+		RenderBobber();
+
+		RenderPlayer();
+	}
+
+	void RenderBobber()
+	{
+		if (!bobber.Projectile.HasValue) { return; }
+
+		float currentTick = Engine.CurrentInterpTick + Engine.InterpT;
+		Vector2 bobberSpritePosition = bobber.Projectile.Value.GetPosition(currentTick) - ((Vector2)bobberSpriteSize / 2f);
+		DrawTexturePro(
+			Engine.SpritesTexture,
+			new(GetBobberSprite() * bobberSpriteSize, bobberSpriteSize),
+			new(bobberSpritePosition, (Vector2)bobberSpriteSize),
+			Vector2.Zero, 0f, Color.White
+			);
 	}
 
 	Vector2 GetBobberSprite()
@@ -63,20 +73,6 @@ class PlayerSprite : Singleton<PlayerSprite>
 		};
 	}
 
-	void RenderBobber()
-	{
-		if (!bobber.Projectile.HasValue) { return; }
-
-		float currentTick = Engine.CurrentInterpTick + Engine.InterpT;
-		Vector2 bobberSpritePosition = bobber.Projectile.Value.GetPosition(currentTick) - ((Vector2)bobberSpriteSize / 2f);
-		DrawTexturePro(
-			Engine.SpritesTexture,
-			new(GetBobberSprite() * bobberSpriteSize, bobberSpriteSize),
-			new(bobberSpritePosition, (Vector2)bobberSpriteSize),
-			Vector2.Zero, 0f, Color.White
-			);
-	}
-
 	void RenderPlayer()
 	{
 		Vector2 renderInterpolatedPosition = Vector2.Lerp(renderOldPosition, renderPosition, Engine.InterpT);
@@ -89,10 +85,30 @@ class PlayerSprite : Singleton<PlayerSprite>
 			);
 	}
 
-	public void Render()
+	Vector2 GetAnimationSprite()
 	{
-		RenderBobber();
+		// todo: add walking animation
+		return facingDirection switch
+		{
+			CardinalDirection.Up => new(0, 0),
+			CardinalDirection.Down => new(0, 1),
+			CardinalDirection.Left => new(0, 2),
+			CardinalDirection.Right => new(0, 3),
+			_ => throw new ArgumentOutOfRangeException(nameof(facingDirection), $"{nameof(CardinalDirection)} variables must be within the four cardinal directions")
+		};
+	}
 
-		RenderPlayer();
+	public void RenderFishingLine()
+	{
+		if (!bobber.Projectile.HasValue) { return; }
+
+		Vector2 renderInterpolatedPosition = Vector2.Lerp(renderOldPosition, renderPosition, Engine.InterpT);
+		float currentTick = Engine.CurrentInterpTick + Engine.InterpT;
+
+		// todo: pack this magic number into a global immutable palette array
+		Color paletteWhite = new(244, 244, 244);
+
+		DrawLineV(renderInterpolatedPosition + playerActor.FeetOffset + new Vector2(0f, fishingLineHoldHeight),
+			bobber.Projectile.Value.GetPosition(currentTick), paletteWhite);
 	}
 }

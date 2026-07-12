@@ -43,6 +43,8 @@ partial class PlayerActor : Singleton<PlayerActor>
 		new NaturalSize(4, 2)
 		);
 
+	public Vector2 FeetOffset { get; private set; }
+
 	// fixed
 	Vector2 position;
 	Vector2 velocity = Vector2.Zero;
@@ -67,6 +69,8 @@ partial class PlayerActor : Singleton<PlayerActor>
 	{
 		this.position = position;
 		facingDirection = CardinalDirection.Down;
+
+		FeetOffset = collider.Position + new Vector2(collider.Size.Width/2f, collider.Size.Height);
 
 		SharedOldPosition = position;
 		SharedPosition = position;
@@ -379,8 +383,7 @@ partial class PlayerActor : Singleton<PlayerActor>
 				{
 					// throw bobber
 					// todo: add control system to set current magic number throwDistance (24)
-					bobber.Projectile = new(Point.RoundToPoint(position + collider.Position + ((Vector2)collider.Size / 2f)),
-						24, facingDirection);
+					bobber.Projectile = new(Point.RoundToPoint(position + FeetOffset), 24, facingDirection);
 					bobber.State = BobberState.InAir;
 					bobber.lastNibbleTick = -65536;
 				}

@@ -115,6 +115,8 @@ static partial class Engine
 		world.RenderTilemap();
 		world.RenderLowProps();
 
+		player.sprite.RenderFishingLine();
+
 		EndTextureMode();
 	}
 

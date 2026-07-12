@@ -10,7 +10,7 @@ partial class PlayerActor : Singleton<PlayerActor>
 	public readonly struct BobberProjectile
 	{
 		// todo: tune constants
-		const float startHeight = -3f; // must be less than zero
+		const float startHeight = -5f; // must be greater than zero
 		const float gravity = 48f; // must be greater than zero
 		// todo: consider varying horizontal velocity based on throwDistance too
 		const float horizontalVelocity = 24f; // must be greater than zero
