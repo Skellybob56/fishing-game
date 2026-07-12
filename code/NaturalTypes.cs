@@ -5,151 +5,151 @@ namespace FishingGame;
 
 public readonly record struct Point(int x, int y)
 {
-    public readonly int X = x;
-    public readonly int Y = y;
+	public readonly int X = x;
+	public readonly int Y = y;
 
-    public static Point operator +(Point a, Point b)
-    {
-        return new(a.X + b.X, a.Y + b.Y);
-    }
-    public static Point operator -(Point a, Point b)
-    {
-        return new(a.X - b.X, a.Y - b.Y);
-    }
-    public static Point operator *(Point a, Point b)
-    {
-        return new(a.X * b.X, a.Y * b.Y);
-    }
-    public static Point operator /(Point a, Point b)
-    {
-        return new(a.X / b.X, a.Y / b.Y);
-    }
+	public static Point operator +(Point a, Point b)
+	{
+		return new(a.X + b.X, a.Y + b.Y);
+	}
+	public static Point operator -(Point a, Point b)
+	{
+		return new(a.X - b.X, a.Y - b.Y);
+	}
+	public static Point operator *(Point a, Point b)
+	{
+		return new(a.X * b.X, a.Y * b.Y);
+	}
+	public static Point operator /(Point a, Point b)
+	{
+		return new(a.X / b.X, a.Y / b.Y);
+	}
 
-    public static Point operator *(Point a, int b)
-    {
-        return new(a.X * b, a.Y * b);
-    }
-    public static Point operator /(Point a, int b)
-    {
-        return new(a.X / b, a.Y / b);
-    }
-    public static Point operator *(Point a, NaturalSize b)
-    {
-        return new(a.X * b.Width, a.Y * b.Height);
-    }
+	public static Point operator *(Point a, int b)
+	{
+		return new(a.X * b, a.Y * b);
+	}
+	public static Point operator /(Point a, int b)
+	{
+		return new(a.X / b, a.Y / b);
+	}
+	public static Point operator *(Point a, NaturalSize b)
+	{
+		return new(a.X * b.Width, a.Y * b.Height);
+	}
 
-    public static implicit operator Vector2(Point a)
-    {
-        return new(a.X, a.Y);
-    }
+	public static implicit operator Vector2(Point a)
+	{
+		return new(a.X, a.Y);
+	}
 
-    public static Point RoundToPoint(Vector2 v)
-    {
-        return new((int)MathF.Round(v.X), (int)MathF.Round(v.Y));
-    }
+	public static Point RoundToPoint(Vector2 v)
+	{
+		return new((int)MathF.Round(v.X), (int)MathF.Round(v.Y));
+	}
 
-    public static Point FloorToPoint(Vector2 v)
-    {
-        return new((int)MathF.Floor(v.X), (int)MathF.Floor(v.Y));
-    }
+	public static Point FloorToPoint(Vector2 v)
+	{
+		return new((int)MathF.Floor(v.X), (int)MathF.Floor(v.Y));
+	}
 
-    public static Point CeilToPoint(Vector2 v)
-    {
-        return new((int)MathF.Ceiling(v.X), (int)MathF.Ceiling(v.Y));
-    }
+	public static Point CeilToPoint(Vector2 v)
+	{
+		return new((int)MathF.Ceiling(v.X), (int)MathF.Ceiling(v.Y));
+	}
 
-    public override string ToString()
-    { return $"<{X}, {Y}>"; }
+	public override string ToString()
+	{ return $"<{X}, {Y}>"; }
 }
 public readonly record struct NaturalSize
 {
-    public readonly int Width;
-    public readonly int Height;
+	public readonly int Width;
+	public readonly int Height;
 
-    public NaturalSize(int width, int height)
-    {
-        if (width <= 0)
-        { throw new ArgumentOutOfRangeException(nameof(width), "Natural size must be greater than zero"); }
-        this.Width = width;
+	public NaturalSize(int width, int height)
+	{
+		if (width <= 0)
+		{ throw new ArgumentOutOfRangeException(nameof(width), "Natural size must be greater than zero"); }
+		this.Width = width;
 
-        if (height <= 0)
-        { throw new ArgumentOutOfRangeException(nameof(height), "Natural size must be greater than zero"); }
-        this.Height = height;
-    }
+		if (height <= 0)
+		{ throw new ArgumentOutOfRangeException(nameof(height), "Natural size must be greater than zero"); }
+		this.Height = height;
+	}
 
-    public static NaturalSize operator *(NaturalSize a, int b)
-    {
-        return new(a.Width * b, a.Height * b);
-    }
-    public static NaturalSize operator /(NaturalSize a, int b)
-    {
-        return new(a.Width / b, a.Height / b);
-    }
+	public static NaturalSize operator *(NaturalSize a, int b)
+	{
+		return new(a.Width * b, a.Height * b);
+	}
+	public static NaturalSize operator /(NaturalSize a, int b)
+	{
+		return new(a.Width / b, a.Height / b);
+	}
 
-    public static implicit operator Vector2(NaturalSize a)
-    {
-        return new(a.Width, a.Height);
-    }
-    public static explicit operator Point(NaturalSize a)
-    {
-        return new(a.Width, a.Height);
-    }
+	public static implicit operator Vector2(NaturalSize a)
+	{
+		return new(a.Width, a.Height);
+	}
+	public static explicit operator Point(NaturalSize a)
+	{
+		return new(a.Width, a.Height);
+	}
 
-    public override string ToString()
-    { return $"<{Width}, {Height}>"; }
+	public override string ToString()
+	{ return $"<{Width}, {Height}>"; }
 }
 
 readonly record struct NaturalRectangle(Point position, NaturalSize size)
 {
-    public readonly Point Position = position;
-    public readonly NaturalSize Size = size;
+	public readonly Point Position = position;
+	public readonly NaturalSize Size = size;
 
-    public NaturalRectangle(int x, int y, NaturalSize size) : this(new(x, y), size) { }
+	public NaturalRectangle(int x, int y, NaturalSize size) : this(new(x, y), size) { }
 
-    public static NaturalRectangle ExpansiveRound(Rectangle rectangle, bool closedIntervals = true)
-    {
-        Vector2 minPointVec = rectangle.Position;
-        Vector2 maxPointVec = rectangle.Position + rectangle.Size;
-        float temp;
+	public static NaturalRectangle ExpansiveRound(Rectangle rectangle, bool closedIntervals = true)
+	{
+		Vector2 minPointVec = rectangle.Position;
+		Vector2 maxPointVec = rectangle.Position + rectangle.Size;
+		float temp;
 
-        // flip rectangle to make size positive
-        if (minPointVec.X > maxPointVec.X)
-        {
-            temp = minPointVec.X;
-            minPointVec.X = maxPointVec.X;
-            maxPointVec.X = temp;
-        }
-        if (minPointVec.Y > maxPointVec.Y)
-        {
-            temp = minPointVec.Y;
-            minPointVec.Y = maxPointVec.Y;
-            maxPointVec.Y = temp;
-        }
+		// flip rectangle to make size positive
+		if (minPointVec.X > maxPointVec.X)
+		{
+			temp = minPointVec.X;
+			minPointVec.X = maxPointVec.X;
+			maxPointVec.X = temp;
+		}
+		if (minPointVec.Y > maxPointVec.Y)
+		{
+			temp = minPointVec.Y;
+			minPointVec.Y = maxPointVec.Y;
+			maxPointVec.Y = temp;
+		}
 
-        if (closedIntervals)
-        {
-            Point position = new((int)MathF.Ceiling(minPointVec.X) - 1, (int)MathF.Ceiling(minPointVec.Y) - 1);
-            Point maxPosition = new((int)MathF.Floor(maxPointVec.X) + 1, (int)MathF.Floor(maxPointVec.Y) + 1);
-            NaturalSize size = new(maxPosition.X - position.X, maxPosition.Y - position.Y);
+		if (closedIntervals)
+		{
+			Point position = new((int)MathF.Ceiling(minPointVec.X) - 1, (int)MathF.Ceiling(minPointVec.Y) - 1);
+			Point maxPosition = new((int)MathF.Floor(maxPointVec.X) + 1, (int)MathF.Floor(maxPointVec.Y) + 1);
+			NaturalSize size = new(maxPosition.X - position.X, maxPosition.Y - position.Y);
 
-            return new(position, size);
-        }
-        else
-        {
-            Point position = new((int)MathF.Floor(minPointVec.X), (int)MathF.Floor(minPointVec.Y));
-            Point maxPosition = new((int)MathF.Ceiling(maxPointVec.X), (int)MathF.Ceiling(maxPointVec.Y));
-            NaturalSize size = new(maxPosition.X - position.X, maxPosition.Y - position.Y);
+			return new(position, size);
+		}
+		else
+		{
+			Point position = new((int)MathF.Floor(minPointVec.X), (int)MathF.Floor(minPointVec.Y));
+			Point maxPosition = new((int)MathF.Ceiling(maxPointVec.X), (int)MathF.Ceiling(maxPointVec.Y));
+			NaturalSize size = new(maxPosition.X - position.X, maxPosition.Y - position.Y);
 
-            return new(position, size);
-        }
+			return new(position, size);
+		}
 
-    }
+	}
 
-    public static explicit operator Rectangle(NaturalRectangle a)
-    {
-        return new((Vector2)a.Position, (Vector2)a.Size);
-    }
+	public static explicit operator Rectangle(NaturalRectangle a)
+	{
+		return new((Vector2)a.Position, (Vector2)a.Size);
+	}
 
-    public override string ToString()
-    { return $"Position: {Position}, Size: {Size}"; }
+	public override string ToString()
+	{ return $"Position: {Position}, Size: {Size}"; }
 }

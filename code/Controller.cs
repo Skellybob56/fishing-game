@@ -6,68 +6,68 @@ namespace FishingGame;
 
 class Controller : Singleton<Controller>
 {
-    public static Controller Create()
-    { return Register(new Controller()); }
+	public static Controller Create()
+	{ return Register(new Controller()); }
 
-    public static Vector2 WishDir { get; private set; }
-    public static bool castRod { get; private set; }
+	public static Vector2 WishDir { get; private set; }
+	public static bool castRod { get; private set; }
 
-    const float leftStickDeadzoneX = 0.2f;
-    const float leftStickDeadzoneY = 0.2f;
+	const float leftStickDeadzoneX = 0.2f;
+	const float leftStickDeadzoneY = 0.2f;
 
-    static int gamepad = 0; // todo: add detection for which gamepad is active
-    static Vector2 leftStick;
-    static bool oldCastRodHeld;
+	static int gamepad = 0; // todo: add detection for which gamepad is active
+	static Vector2 leftStick;
+	static bool oldCastRodHeld;
 
-    static void UpdateStickInput()
-    {
-        leftStick = new(
-            GetGamepadAxisMovement(gamepad, GamepadAxis.LeftX),
-            GetGamepadAxisMovement(gamepad, GamepadAxis.LeftY)
-            );
-        
-        // cross-shaped deadzone used to make walking in cardinal directions easier
-        if (leftStick.X > -leftStickDeadzoneX && leftStick.X < leftStickDeadzoneX)
-        { leftStick.X = 0; }
-        if (leftStick.Y > -leftStickDeadzoneY && leftStick.Y < leftStickDeadzoneY)
-        { leftStick.Y = 0; }
-    }
+	static void UpdateStickInput()
+	{
+		leftStick = new(
+			GetGamepadAxisMovement(gamepad, GamepadAxis.LeftX),
+			GetGamepadAxisMovement(gamepad, GamepadAxis.LeftY)
+			);
 
-    static void UpdateWishDir()
-    {
-        WishDir = Vector2.Zero;
+		// cross-shaped deadzone used to make walking in cardinal directions easier
+		if (leftStick.X > -leftStickDeadzoneX && leftStick.X < leftStickDeadzoneX)
+		{ leftStick.X = 0; }
+		if (leftStick.Y > -leftStickDeadzoneY && leftStick.Y < leftStickDeadzoneY)
+		{ leftStick.Y = 0; }
+	}
 
-        if (leftStick != Vector2.Zero)
-        {
-            WishDir = leftStick;
-        }
-        else
-        {
-            if (IsKeyDown(KeyboardKey.W) || IsKeyDown(KeyboardKey.Up) || IsGamepadButtonDown(gamepad, GamepadButton.LeftFaceUp)) 
-            { WishDir = new(WishDir.X, WishDir.Y - 1f); }
-            if (IsKeyDown(KeyboardKey.A) || IsKeyDown(KeyboardKey.Left) || IsGamepadButtonDown(gamepad, GamepadButton.LeftFaceLeft)) 
-            { WishDir = new(WishDir.X - 1f, WishDir.Y); }
-            if (IsKeyDown(KeyboardKey.S) || IsKeyDown(KeyboardKey.Down) || IsGamepadButtonDown(gamepad, GamepadButton.LeftFaceDown)) 
-            { WishDir = new(WishDir.X, WishDir.Y + 1f); }
-            if (IsKeyDown(KeyboardKey.D) || IsKeyDown(KeyboardKey.Right) || IsGamepadButtonDown(gamepad, GamepadButton.LeftFaceRight)) 
-            { WishDir = new(WishDir.X + 1f, WishDir.Y); }
-        }
-        if (WishDir.LengthSquared() > 1f) { WishDir = Vector2.Normalize(WishDir); }
-    }
+	static void UpdateWishDir()
+	{
+		WishDir = Vector2.Zero;
 
-    static void UpdateButtonActions()
-    {
-        bool castRodHeld = IsMouseButtonDown(MouseButton.Left) || IsGamepadButtonDown(gamepad, GamepadButton.RightFaceLeft);
-        castRod = castRodHeld && !oldCastRodHeld;
-        oldCastRodHeld = castRodHeld;
-    }
+		if (leftStick != Vector2.Zero)
+		{
+			WishDir = leftStick;
+		}
+		else
+		{
+			if (IsKeyDown(KeyboardKey.W) || IsKeyDown(KeyboardKey.Up) || IsGamepadButtonDown(gamepad, GamepadButton.LeftFaceUp))
+			{ WishDir = new(WishDir.X, WishDir.Y - 1f); }
+			if (IsKeyDown(KeyboardKey.A) || IsKeyDown(KeyboardKey.Left) || IsGamepadButtonDown(gamepad, GamepadButton.LeftFaceLeft))
+			{ WishDir = new(WishDir.X - 1f, WishDir.Y); }
+			if (IsKeyDown(KeyboardKey.S) || IsKeyDown(KeyboardKey.Down) || IsGamepadButtonDown(gamepad, GamepadButton.LeftFaceDown))
+			{ WishDir = new(WishDir.X, WishDir.Y + 1f); }
+			if (IsKeyDown(KeyboardKey.D) || IsKeyDown(KeyboardKey.Right) || IsGamepadButtonDown(gamepad, GamepadButton.LeftFaceRight))
+			{ WishDir = new(WishDir.X + 1f, WishDir.Y); }
+		}
+		if (WishDir.LengthSquared() > 1f) { WishDir = Vector2.Normalize(WishDir); }
+	}
 
-    // not static in order to require that the caller has a reference to the singleton to allow the caller to call this function
-    public void FixedUpdate()
-    {
-        UpdateStickInput();
-        UpdateWishDir();
+	static void UpdateButtonActions()
+	{
+		bool castRodHeld = IsMouseButtonDown(MouseButton.Left) || IsGamepadButtonDown(gamepad, GamepadButton.RightFaceLeft);
+		castRod = castRodHeld && !oldCastRodHeld;
+		oldCastRodHeld = castRodHeld;
+	}
 
-        UpdateButtonActions();
-    }
+	// not static in order to require that the caller has a reference to the singleton to allow the caller to call this function
+	public void FixedUpdate()
+	{
+		UpdateStickInput();
+		UpdateWishDir();
+
+		UpdateButtonActions();
+	}
 }

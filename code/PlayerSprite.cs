@@ -7,92 +7,92 @@ namespace FishingGame;
 
 class PlayerSprite : Singleton<PlayerSprite>
 {
-    public static PlayerSprite Create(PlayerActor playerActor)
-    { return Register(new PlayerSprite(playerActor)); }
+	public static PlayerSprite Create(PlayerActor playerActor)
+	{ return Register(new PlayerSprite(playerActor)); }
 
-    public static readonly NaturalSize spriteSize = new(16, 16);
-    static readonly NaturalSize bobberSpriteSize = new(8, 8);
+	public static readonly NaturalSize spriteSize = new(16, 16);
+	static readonly NaturalSize bobberSpriteSize = new(8, 8);
 
-    PlayerActor playerActor; // todo: make readonly
-    CardinalDirection facingDirection;
-    Vector2 renderPosition;
-    Vector2 renderOldPosition;
-    (BobberProjectile? Projectile, BobberState State, int lastNibbleTick) bobber;
+	PlayerActor playerActor; // todo: make readonly
+	CardinalDirection facingDirection;
+	Vector2 renderPosition;
+	Vector2 renderOldPosition;
+	(BobberProjectile? Projectile, BobberState State, int lastNibbleTick) bobber;
 
-    private PlayerSprite(PlayerActor playerActor)
-    {
-        this.playerActor = playerActor;
-        LoadSharedData();
-    }
+	private PlayerSprite(PlayerActor playerActor)
+	{
+		this.playerActor = playerActor;
+		LoadSharedData();
+	}
 
-    public void LoadSharedData()
-    {
-        renderOldPosition = playerActor.SharedOldPosition;
+	public void LoadSharedData()
+	{
+		renderOldPosition = playerActor.SharedOldPosition;
 
-        renderPosition = playerActor.SharedPosition;
-        facingDirection = playerActor.SharedFacingDirection;
-        bobber = playerActor.SharedBobber;
-    }
+		renderPosition = playerActor.SharedPosition;
+		facingDirection = playerActor.SharedFacingDirection;
+		bobber = playerActor.SharedBobber;
+	}
 
-    Vector2 GetAnimationSprite()
-    {
-        // todo: add walking animation
-        return facingDirection switch
-        {
-            CardinalDirection.Up => new(0, 0),
-            CardinalDirection.Down => new(0, 1),
-            CardinalDirection.Left => new(0, 2),
-            CardinalDirection.Right => new(0, 3),
-            _ => throw new ArgumentOutOfRangeException(nameof(facingDirection), $"{nameof(CardinalDirection)} variables must be within the four cardinal directions")
-        };
-    }
+	Vector2 GetAnimationSprite()
+	{
+		// todo: add walking animation
+		return facingDirection switch
+		{
+			CardinalDirection.Up => new(0, 0),
+			CardinalDirection.Down => new(0, 1),
+			CardinalDirection.Left => new(0, 2),
+			CardinalDirection.Right => new(0, 3),
+			_ => throw new ArgumentOutOfRangeException(nameof(facingDirection), $"{nameof(CardinalDirection)} variables must be within the four cardinal directions")
+		};
+	}
 
-    Vector2 GetBobberSprite()
-    {
-        if (bobber.State == BobberState.InWater  && Engine.CurrentInterpTick - bobber.lastNibbleTick <= 6)
-        {
-            return new(1, 0);
-        }
+	Vector2 GetBobberSprite()
+	{
+		if (bobber.State == BobberState.InWater  && Engine.CurrentInterpTick - bobber.lastNibbleTick <= 6)
+		{
+			return new(1, 0);
+		}
 
-        return bobber.State switch
-        {
-            BobberState.InWater => new(0, 0),
-            BobberState.InAir => new(0, 0),
-            BobberState.Sunk => new(0, 1),
-            _ => throw new ArgumentOutOfRangeException(nameof(bobber.State), $"{nameof(BobberState)} state invalid for getting sprite")
-        };
-    }
+		return bobber.State switch
+		{
+			BobberState.InWater => new(0, 0),
+			BobberState.InAir => new(0, 0),
+			BobberState.Sunk => new(0, 1),
+			_ => throw new ArgumentOutOfRangeException(nameof(bobber.State), $"{nameof(BobberState)} state invalid for getting sprite")
+		};
+	}
 
-    void RenderBobber()
-    {
-        if (!bobber.Projectile.HasValue) { return; }
+	void RenderBobber()
+	{
+		if (!bobber.Projectile.HasValue) { return; }
 
-        float currentTick = Engine.CurrentInterpTick + Engine.InterpT;
-        Vector2 bobberSpritePosition = bobber.Projectile.Value.GetPosition(currentTick) - ((Vector2)bobberSpriteSize / 2f);
-        DrawTexturePro(
-            Engine.SpritesTexture,
-            new(GetBobberSprite() * bobberSpriteSize, bobberSpriteSize),
-            new(bobberSpritePosition, (Vector2)bobberSpriteSize),
-            Vector2.Zero, 0f, Color.White
-            );
-    }
+		float currentTick = Engine.CurrentInterpTick + Engine.InterpT;
+		Vector2 bobberSpritePosition = bobber.Projectile.Value.GetPosition(currentTick) - ((Vector2)bobberSpriteSize / 2f);
+		DrawTexturePro(
+			Engine.SpritesTexture,
+			new(GetBobberSprite() * bobberSpriteSize, bobberSpriteSize),
+			new(bobberSpritePosition, (Vector2)bobberSpriteSize),
+			Vector2.Zero, 0f, Color.White
+			);
+	}
 
-    void RenderPlayer()
-    {
-        Vector2 renderInterpolatedPosition = Vector2.Lerp(renderOldPosition, renderPosition, Engine.InterpT);
+	void RenderPlayer()
+	{
+		Vector2 renderInterpolatedPosition = Vector2.Lerp(renderOldPosition, renderPosition, Engine.InterpT);
 
-        DrawTexturePro(
-            Engine.PlayerTexture,
-            new(GetAnimationSprite() * spriteSize, spriteSize),
-            new(renderInterpolatedPosition, (Vector2)spriteSize),
-            Vector2.Zero, 0f, Color.White
-            );
-    }
+		DrawTexturePro(
+			Engine.PlayerTexture,
+			new(GetAnimationSprite() * spriteSize, spriteSize),
+			new(renderInterpolatedPosition, (Vector2)spriteSize),
+			Vector2.Zero, 0f, Color.White
+			);
+	}
 
-    public void Render()
-    {
-        RenderBobber();
+	public void Render()
+	{
+		RenderBobber();
 
-        RenderPlayer();
-    }
+		RenderPlayer();
+	}
 }
