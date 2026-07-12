@@ -76,124 +76,13 @@ partial class PlayerActor : Singleton<PlayerActor>
 		inventory = Inventory.Create();
 	}
 
-	void Rollover()
+	public void SaveToSharedData()
 	{
-		static void PredictStoppingPositionAndTime(float position, float orthogonalWishVelocity, Vector2 velocity, int axis, out int ticksTillStatic, out float finalPosition)
-		{
-			Vector2 wishVelocity = Vector2.Zero;
-			wishVelocity[axis == 0 ? 1 : 0] = orthogonalWishVelocity;
+		SharedOldPosition = SharedPosition;
 
-			finalPosition = position;
-
-			ticksTillStatic = 0;
-			while (velocity[axis] != 0) // wishVelocity[axis] must be equal to zero so velocity[axis] must become zero due to slowdown
-			{
-				ticksTillStatic++;
-				finalPosition += velocity[axis];
-
-				// todo: unify this code with the identical code in FixedUpdate()
-				// < snippet from FixedUpdate() >
-				AccelerationMode accelerationMode = GetAccelerationMode(wishVelocity, velocity);
-
-				if (accelerationMode == AccelerationMode.Accelerating)
-				{
-					velocity = velocity.MoveTowards(wishVelocity, acceleration);
-				}
-				else if (accelerationMode == AccelerationMode.Decelerating)
-				{
-					velocity = velocity.MoveTowards(wishVelocity, deceleration);
-				}
-				else if (accelerationMode == AccelerationMode.CounterAccelerating)
-				{
-					velocity = velocity.MoveTowards(wishVelocity, counterAcceleration);
-				}
-				// </snippet from FixedUpdate() >
-			}
-		}
-
-		// todo: bug: rollover seems to overshoot and bounce-back frequently when simply moving on one axis and stopping.
-		// todo: use an enum for axis
-		for (int axis = 0; axis < 2; axis++)
-		{
-			// return if not appropriate for rollover
-			if (wishVelocity[axis] != 0 || (axis == 0 ? nudgeFlags.HasFlag(NudgeFlags.XNudge) : nudgeFlags.HasFlag(NudgeFlags.YNudge)))
-			{ continue; }
-
-			if (velocity[axis] == 0) // static
-			{
-				float positionTarget = MathF.Round(position[axis]);
-
-				// already on pixel grid
-				if (positionTarget == position[axis]) { continue; }
-
-				displacement[axis] += MovementTowards(position[axis], positionTarget, rolloverSpeed);
-			}
-			else // coast
-			{
-				// get predicted tick count till static and the final position
-				PredictStoppingPositionAndTime(position[axis], wishVelocity[axis == 0 ? 1 : 0], velocity, axis,
-					out int ticksTillStatic, out float finalPosition);
-
-				// manipulate data to get final position frame delta
-				float finalPositionTarget = MathF.Round(finalPosition);
-				float finalPositionDelta = finalPositionTarget - finalPosition;
-				float finalPositionFrameDelta = finalPositionDelta / ticksTillStatic;
-
-				displacement[axis] +=
-					MathF.Abs(finalPositionFrameDelta) > rolloverSpeed ?
-					rolloverSpeed * MathF.Sign(finalPositionFrameDelta) :
-					finalPositionFrameDelta;
-			}
-		}
-	}
-
-	static float? ApplySubtickDisplacementNudge(Vector2 unnudgedSubtickDisplacement, Vector2 wishVelocity, AABBHit hit, bool horizontalCollision, Point closestTileHit, NaturalSize colliderSize)
-	{
-		if (hit.TEdge < edgeBevelDepth || hit.TEdge > 1f - edgeBevelDepth)
-		{
-			int nudgeSign = hit.TEdge > 0.5f ? 1 : -1;
-			int normalSign = hit.CollisionNormal == CardinalDirection.Left ||
-				hit.CollisionNormal == CardinalDirection.Up ? -1 : 1;
-
-			// if player is applying input towards the wall
-			if ((horizontalCollision? wishVelocity.X : wishVelocity.Y) * normalSign < 0f)
-			{
-				Point firstSample = closestTileHit + // cardinal neighbour tile
-					(horizontalCollision ? new(0, nudgeSign) : new(nudgeSign, 0));
-				Point secondSample = closestTileHit + // diagonal neighbour tile
-					(horizontalCollision ? new(normalSign, nudgeSign) : new(nudgeSign, normalSign));
-
-				if (Engine.PointToCollision(firstSample) == CollisionType.Walkable &&
-					Engine.PointToCollision(secondSample) == CollisionType.Walkable)
-				{
-					float tCorner = 0.5f - MathF.Abs(hit.TEdge - 0.5f);
-					// lerp nudge between zero when just barely on the bevel to the maximum when right at the edge
-					float bevelStrength = 1 - (tCorner / edgeBevelDepth);
-
-					// nudge axis calculations
-					float colliderLength = horizontalCollision ? colliderSize.Height : colliderSize.Width;
-					float tileSize = horizontalCollision ? TileSize.Height : TileSize.Width;
-					float edgePixelLength = tileSize + colliderLength;
-					float edgeStart = (horizontalCollision ? closestTileHit.Y : closestTileHit.X) * tileSize - colliderLength;
-
-					float cornerPixel = edgeStart + (nudgeSign > 0 ? edgePixelLength : 0f);
-					float intersectionPixel = (horizontalCollision ? hit.IntersectionPoint.Y : hit.IntersectionPoint.X) * tileSize;
-					float cornerDelta = cornerPixel - intersectionPixel;
-
-					float unnudgedSubtickDelta = horizontalCollision ? unnudgedSubtickDisplacement.Y : unnudgedSubtickDisplacement.X;
-					float displacedPredictedPosition = intersectionPixel + unnudgedSubtickDelta;
-
-					// ensure that current displacement doesn't already round the corner
-					if (displacedPredictedPosition * nudgeSign < cornerPixel * nudgeSign)
-					{
-						float bevelMaxDelta = maxNudgePortion * (bevelStrength * (edgePixelLength * edgeBevelDepth)); // todo: consider modulating nudge strength based on how strongly wishDir is pointing into the wall
-						// ensure nudge doesn't overshoot the corner
-						return unnudgedSubtickDelta.MoveTowards(cornerDelta, bevelMaxDelta);
-					}
-				}
-			}
-		}
-		return null;
+		SharedPosition = position;
+		SharedFacingDirection = facingDirection;
+		SharedBobber = bobber;
 	}
 
 	void ApplyDisplacement()
@@ -290,6 +179,55 @@ partial class PlayerActor : Singleton<PlayerActor>
 				}
 			}
 		}
+
+		static float? ApplySubtickDisplacementNudge(Vector2 unnudgedSubtickDisplacement, Vector2 wishVelocity, AABBHit hit, bool horizontalCollision, Point closestTileHit, NaturalSize colliderSize)
+		{
+			if (hit.TEdge < edgeBevelDepth || hit.TEdge > 1f - edgeBevelDepth)
+			{
+				int nudgeSign = hit.TEdge > 0.5f ? 1 : -1;
+				int normalSign = hit.CollisionNormal == CardinalDirection.Left ||
+					hit.CollisionNormal == CardinalDirection.Up ? -1 : 1;
+
+				// if player is applying input towards the wall
+				if ((horizontalCollision? wishVelocity.X : wishVelocity.Y) * normalSign < 0f)
+				{
+					Point firstSample = closestTileHit + // cardinal neighbour tile
+						(horizontalCollision ? new(0, nudgeSign) : new(nudgeSign, 0));
+					Point secondSample = closestTileHit + // diagonal neighbour tile
+						(horizontalCollision ? new(normalSign, nudgeSign) : new(nudgeSign, normalSign));
+
+					if (Engine.PointToCollision(firstSample) == CollisionType.Walkable &&
+						Engine.PointToCollision(secondSample) == CollisionType.Walkable)
+					{
+						float tCorner = 0.5f - MathF.Abs(hit.TEdge - 0.5f);
+						// lerp nudge between zero when just barely on the bevel to the maximum when right at the edge
+						float bevelStrength = 1 - (tCorner / edgeBevelDepth);
+
+						// nudge axis calculations
+						float colliderLength = horizontalCollision ? colliderSize.Height : colliderSize.Width;
+						float tileSize = horizontalCollision ? TileSize.Height : TileSize.Width;
+						float edgePixelLength = tileSize + colliderLength;
+						float edgeStart = (horizontalCollision ? closestTileHit.Y : closestTileHit.X) * tileSize - colliderLength;
+
+						float cornerPixel = edgeStart + (nudgeSign > 0 ? edgePixelLength : 0f);
+						float intersectionPixel = (horizontalCollision ? hit.IntersectionPoint.Y : hit.IntersectionPoint.X) * tileSize;
+						float cornerDelta = cornerPixel - intersectionPixel;
+
+						float unnudgedSubtickDelta = horizontalCollision ? unnudgedSubtickDisplacement.Y : unnudgedSubtickDisplacement.X;
+						float displacedPredictedPosition = intersectionPixel + unnudgedSubtickDelta;
+
+						// ensure that current displacement doesn't already round the corner
+						if (displacedPredictedPosition * nudgeSign < cornerPixel * nudgeSign)
+						{
+							float bevelMaxDelta = maxNudgePortion * (bevelStrength * (edgePixelLength * edgeBevelDepth)); // todo: consider modulating nudge strength based on how strongly wishDir is pointing into the wall
+							// ensure nudge doesn't overshoot the corner
+							return unnudgedSubtickDelta.MoveTowards(cornerDelta, bevelMaxDelta);
+						}
+					}
+				}
+			}
+			return null;
+		}
 	}
 
 	static AccelerationMode GetAccelerationMode(Vector2 wishVelocity, Vector2 velocity)
@@ -305,6 +243,23 @@ partial class PlayerActor : Singleton<PlayerActor>
 
 		// rotational changes within one quarter of a rotation from velocity direction can benefit from 'deceleration' acceleration speeds if wishDir magnitude <= velocity magnitude
 		return wishVelocity.LengthSquared() <= velocity.LengthSquared()? AccelerationMode.Decelerating : AccelerationMode.Accelerating;
+	}
+
+	public void FixedUpdate()
+	{
+		wishVelocity = GetWishVelocity();
+
+		UpdateVelocity();
+		UpdateFacingDirection();
+
+		displacement = velocity;
+
+		// set displacement to shift player onto pixel grid when stationary
+		Rollover();
+
+		ApplyDisplacement();
+
+		UpdateFishing();
 	}
 
 	Vector2 GetWishVelocity()
@@ -338,6 +293,77 @@ partial class PlayerActor : Singleton<PlayerActor>
 			if (MathF.Abs(wishVelocity.X) >= MathF.Abs(wishVelocity.Y))
 			{ facingDirection = wishVelocity.X > 0 ? CardinalDirection.Right : CardinalDirection.Left; }
 			else { facingDirection = wishVelocity.Y > 0 ? CardinalDirection.Down : CardinalDirection.Up; }
+		}
+	}
+
+	void Rollover()
+	{
+		// todo: bug: rollover seems to overshoot and bounce-back frequently when simply moving on one axis and stopping.
+		// todo: use an enum for axis
+		for (int axis = 0; axis < 2; axis++)
+		{
+			// return if not appropriate for rollover
+			if (wishVelocity[axis] != 0 || (axis == 0 ? nudgeFlags.HasFlag(NudgeFlags.XNudge) : nudgeFlags.HasFlag(NudgeFlags.YNudge)))
+			{ continue; }
+
+			if (velocity[axis] == 0) // static
+			{
+				float positionTarget = MathF.Round(position[axis]);
+
+				// already on pixel grid
+				if (positionTarget == position[axis]) { continue; }
+
+				displacement[axis] += MovementTowards(position[axis], positionTarget, rolloverSpeed);
+			}
+			else // coast
+			{
+				// get predicted tick count till static and the final position
+				PredictStoppingPositionAndTime(position[axis], wishVelocity[axis == 0 ? 1 : 0], velocity, axis,
+					out int ticksTillStatic, out float finalPosition);
+
+				// manipulate data to get final position frame delta
+				float finalPositionTarget = MathF.Round(finalPosition);
+				float finalPositionDelta = finalPositionTarget - finalPosition;
+				float finalPositionFrameDelta = finalPositionDelta / ticksTillStatic;
+
+				displacement[axis] +=
+					MathF.Abs(finalPositionFrameDelta) > rolloverSpeed ?
+					rolloverSpeed * MathF.Sign(finalPositionFrameDelta) :
+					finalPositionFrameDelta;
+			}
+		}
+
+		static void PredictStoppingPositionAndTime(float position, float orthogonalWishVelocity, Vector2 velocity, int axis, out int ticksTillStatic, out float finalPosition)
+		{
+			Vector2 wishVelocity = Vector2.Zero;
+			wishVelocity[axis == 0 ? 1 : 0] = orthogonalWishVelocity;
+
+			finalPosition = position;
+
+			ticksTillStatic = 0;
+			while (velocity[axis] != 0) // wishVelocity[axis] must be equal to zero so velocity[axis] must become zero due to slowdown
+			{
+				ticksTillStatic++;
+				finalPosition += velocity[axis];
+
+				// todo: unify this code with the identical code in FixedUpdate()
+				// < snippet from FixedUpdate() >
+				AccelerationMode accelerationMode = GetAccelerationMode(wishVelocity, velocity);
+
+				if (accelerationMode == AccelerationMode.Accelerating)
+				{
+					velocity = velocity.MoveTowards(wishVelocity, acceleration);
+				}
+				else if (accelerationMode == AccelerationMode.Decelerating)
+				{
+					velocity = velocity.MoveTowards(wishVelocity, deceleration);
+				}
+				else if (accelerationMode == AccelerationMode.CounterAccelerating)
+				{
+					velocity = velocity.MoveTowards(wishVelocity, counterAcceleration);
+				}
+				// </snippet from FixedUpdate() >
+			}
 		}
 	}
 
@@ -416,31 +442,5 @@ partial class PlayerActor : Singleton<PlayerActor>
 				bobber.State = BobberState.Withdrawn;
 			}
 		}
-	}
-
-	public void FixedUpdate()
-	{
-		wishVelocity = GetWishVelocity();
-
-		UpdateVelocity();
-		UpdateFacingDirection();
-
-		displacement = velocity;
-
-		// set displacement to shift player onto pixel grid when stationary
-		Rollover();
-
-		ApplyDisplacement();
-
-		UpdateFishing();
-	}
-
-	public void SaveToSharedData()
-	{
-		SharedOldPosition = SharedPosition;
-
-		SharedPosition = position;
-		SharedFacingDirection = facingDirection;
-		SharedBobber = bobber;
 	}
 }
