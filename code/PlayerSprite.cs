@@ -10,7 +10,7 @@ class PlayerSprite : Singleton<PlayerSprite>
 	public static PlayerSprite Create(PlayerActor playerActor)
 	{ return Register(new PlayerSprite(playerActor)); }
 
-	const int fishingLineHoldHeight = -5;
+	const int fishingLineHoldHeight = -3;
 
 	public static readonly NaturalSize spriteSize = new(16, 16);
 	static readonly NaturalSize bobberSpriteSize = new(8, 8);
@@ -49,6 +49,7 @@ class PlayerSprite : Singleton<PlayerSprite>
 
 		float currentTick = Engine.CurrentInterpTick + Engine.InterpT;
 		Vector2 bobberSpritePosition = bobber.Projectile.Value.GetPosition(currentTick) - ((Vector2)bobberSpriteSize / 2f);
+
 		DrawTexturePro(
 			Engine.SpritesTexture,
 			new(GetBobberSprite() * bobberSpriteSize, bobberSpriteSize),
@@ -108,7 +109,9 @@ class PlayerSprite : Singleton<PlayerSprite>
 		// todo: pack this magic number into a global immutable palette array
 		Color paletteWhite = new(244, 244, 244);
 
+		int bobberVerticalOffset = bobber.State == BobberState.Sunk? 1 : 0;
+
 		DrawLineV(renderInterpolatedPosition + playerActor.FeetOffset + new Vector2(0f, fishingLineHoldHeight),
-			bobber.Projectile.Value.GetPosition(currentTick), paletteWhite);
+			bobber.Projectile.Value.GetPosition(currentTick) + new Vector2(0, bobberVerticalOffset), paletteWhite);
 	}
 }
