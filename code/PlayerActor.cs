@@ -53,6 +53,8 @@ partial class PlayerActor : Singleton<PlayerActor>
 	(BobberProjectile? Projectile, BobberState State, int lastNibbleTick) bobber = (null, BobberState.Withdrawn, -65536); // null if fishing line not cast
 	int fishingTickCounter, fishingTicksSinceStart, nibbleCount;
 
+	Inventory inventory;
+
 	NudgeFlags nudgeFlags = NudgeFlags.NoNudge;
 
 	// shared
@@ -70,6 +72,8 @@ partial class PlayerActor : Singleton<PlayerActor>
 		SharedPosition = position;
 		SharedFacingDirection = facingDirection;
 		SharedBobber = bobber;
+
+		inventory = Inventory.Create();
 	}
 
 	void Rollover()
@@ -380,7 +384,7 @@ partial class PlayerActor : Singleton<PlayerActor>
 				bobber.State = nextBobberState;
 			}
 
-			// fish catching update
+			// fish biting update
 			if (bobber.State == BobberState.InWater)
 			{
 				fishingTickCounter++;
@@ -402,6 +406,15 @@ partial class PlayerActor : Singleton<PlayerActor>
 		else
 		{
 			// fishing minigame
+			if (Controller.castRod)
+			{
+				// fish get
+				inventory.IncrementFishCount();
+
+				// return bobber
+				bobber.Projectile = null;
+				bobber.State = BobberState.Withdrawn;
+			}
 		}
 	}
 
